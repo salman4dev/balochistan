@@ -18,3 +18,9 @@
 @media(max-width:800px){.guide-nav{padding:14px 20px;min-height:66px}.guide-hero{grid-template-columns:1fr;padding:70px 20px 65px;gap:35px}.guide-hero h1{font-size:clamp(58px,11vw,95px);letter-spacing:-3px}.guide-hero-visual{height:390px;min-height:0}.guide-index,.guide-articles,.guide-footer{padding-left:20px;padding-right:20px}.guide-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding-bottom:45px}.guide-articles article{grid-template-columns:1fr;gap:17px;padding:55px 0}.guide-article-content{padding-top:0}.guide-footer{display:block}}
 @media(max-width:480px){.guide-nav{gap:12px;font-size:10px}.guide-nav span{letter-spacing:.7px;font-size:10px}.guide-nav>a:last-child{display:none}.guide-hero{padding-top:50px}.guide-hero h1{font-size:clamp(53px,15vw,75px);line-height:1.02}.guide-hero p{font-size:15px}.guide-hero-visual{height:285px}.guide-hero-caption{left:18px;bottom:18px}.guide-hero-caption strong{font-size:18px}.guide-section-head{font-size:9px}.guide-grid{gap:10px}.guide-grid .guide-topic-card{height:205px}.guide-topic-copy{padding:12px}.guide-topic-copy strong{font-size:17px}.guide-topic-copy span{font-size:8px}.guide-article-photo>.story-photo{height:220px}.guide-hero-note{font-size:8px;gap:8px}}
 @media(prefers-reduced-motion:reduce){.guide .story-photo img,.guide-grid .guide-topic-card,.guide-actions a{transition:none!important}}
+
+/* Separate theme navigation from Wikimedia attribution links */
+.guide-grid .guide-topic-copy{pointer-events:auto}
+.guide-topic-copy>a{display:inline-flex;align-self:flex-start;color:#c2dfda;font-size:11px;font-weight:750;margin-top:5px;border-bottom:1px solid #b4ded265;padding-bottom:3px}
+.guide-topic-copy>a:hover{color:#ffd19a;border-color:#ffd19a}
+.guide-grid .story-photo>a{z-index:4}
