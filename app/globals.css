@@ -107,3 +107,21 @@
 .atlas-map-legend i{display:inline-block;width:9px;height:9px;border-radius:50%;border:1px solid #e8eeee90}
 .legend-city{background:#ffb24c}.legend-town{background:#f1c475}.legend-village{background:#68d7d0}
 @media(max-width:850px){.atlas-quick-card{padding:8px}.atlas-quick-emoji{font-size:17px}.atlas-quick-trips{margin-bottom:12px}}
+
+/* Branded loading experience: subtle, reduced-motion-aware, no spinner dependencies */
+.atlas-loading-screen{min-height:100svh;background:radial-gradient(circle at 50% 44%,#183f45 0%,#0b2430 36%,#061721 78%);color:#f5f3eb;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:28px;font-family:Inter,Arial,sans-serif}
+.atlas-loading-orbit{width:122px;height:122px;border-radius:50%;display:grid;place-items:center;position:relative;margin-bottom:15px}
+.atlas-loading-orbit>img{width:76px;height:76px;border-radius:19px;box-shadow:0 0 36px #82bb9e22;z-index:1}
+.atlas-loading-ring{position:absolute;inset:0;border:1px solid #58837c63;border-radius:50%;animation:atlas-load-orbit 3.6s linear infinite}
+.atlas-loading-ring:before{content:'';display:block;position:absolute;left:50%;top:-4px;width:9px;height:9px;border-radius:50%;background:#e8b979;box-shadow:0 0 20px #e8b9799e}
+.atlas-loading-title{margin:10px 0 0;letter-spacing:3px;font-weight:800;font-size:17px}
+.atlas-loading-title span{color:#e7b77b}
+.atlas-loading-caption{margin:2px 0;font-size:13px;color:#b8d0cd}
+.atlas-loading-track{height:3px;width:min(240px,65vw);border-radius:8px;background:#41605d;overflow:hidden;margin-top:15px}
+.atlas-loading-track>span{display:block;height:100%;width:38%;border-radius:8px;background:#e8b979;animation:atlas-load-progress 1.65s ease-in-out infinite alternate}
+.atlas-loading-note{font-size:10px;letter-spacing:1.9px;color:#819e9c;margin-top:10px}
+@keyframes atlas-load-orbit{to{transform:rotate(360deg)}}
+@keyframes atlas-load-progress{from{transform:translateX(-90%)}to{transform:translateX(260%)}}
+@media(prefers-reduced-motion:reduce){.atlas-loading-ring,.atlas-loading-track>span{animation:none!important}.atlas-loading-track>span{width:100%;transform:none!important}}
+/* Compact navigation when knowledge pages add new routes */
+@media(min-width:1021px) and (max-width:1450px){.atlas-main-nav a{font-size:10px;padding:9px 7px}.atlas-navbar{gap:8px;padding-left:18px;padding-right:18px}.atlas-map-reset{display:none}}
