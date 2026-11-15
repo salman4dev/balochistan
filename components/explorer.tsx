@@ -55,6 +55,11 @@ export default function Explorer(){
 
  const [provinceOnly,setProvinceOnly]=useState(true);
  const [mapReady,setMapReady]=useState(false);
+ const [mapSlow,setMapSlow]=useState(false);
+ const currentFilter=useRef<'all'|'city'|'town'|'village'|'hamlet'>('all');
+ const showSettlementsRef=useRef(true);
+ currentFilter.current=kindFilter;
+ showSettlementsRef.current=showSettlements;
  const shareDestination=async(city:City)=>{
   const url=new URL(window.location.href);
   url.searchParams.set('place',city.id);
@@ -75,13 +80,25 @@ export default function Explorer(){
  const boundaryRef=useRef<GeoJSON.FeatureCollection|null>(null);
  useEffect(()=>{
   let active=true;
-  fetch('/api/places').then(r=>r.json()).then(data=>{if(!active)return;const result=Array.isArray(data.places)?data.places:[];placesRef.current=result;setPlaces(result);setPlacesStatus(result.length?result.length.toLocaleString()+' mapped settlements':'Live settlements unavailable');syncPlaces();}).catch(()=>{if(active)setPlacesStatus('Live settlements unavailable');});
+  const placesController=new AbortController();
+  const fetchPlaces=()=>{
+   if(!active)return;
+   fetch('/api/places',{signal:placesController.signal}).then(r=>{if(!r.ok)throw new Error('Settlements unavailable');return r.json()}).then(data=>{
+    if(!active)return;
+    const result:Place[]=Array.isArray(data.places)?data.places:[];
+    placesRef.current=result;setPlaces(result);
+    setPlacesStatus(result.length?result.length.toLocaleString()+' mapped settlements':'Live settlements unavailable');
+    syncPlaces();
+   }).catch(()=>{if(active)setPlacesStatus('Live settlements unavailable')});
+  };
+  // Load boundaries immediately; defer the large Overpass response until the map is visible.
+  const deferredTimer=window.setTimeout(fetchPlaces,1500);
   fetch('/api/boundary').then(r=>r.json()).then(data=>{if(!active)return;if(data.type==='FeatureCollection'){boundaryRef.current=data;setBoundaryStatus('Boundary loaded');syncBoundary();}else setBoundaryStatus('Boundary unavailable');}).catch(()=>{if(active)setBoundaryStatus('Boundary unavailable');});
-  return()=>{active=false};
+  return()=>{active=false;window.clearTimeout(deferredTimer);placesController.abort()};
  },[]);
  const syncPlaces=()=>{
   const m=map.current;if(!m||!m.isStyleLoaded())return;
-  const geojson:GeoJSON.FeatureCollection={type:'FeatureCollection',features:placesRef.current.filter(p=>showSettlements&&(kindFilter==='all'||p.kind===kindFilter)).map(p=>({type:'Feature',geometry:{type:'Point',coordinates:p.coordinates},properties:{id:p.id,name:p.name,kind:p.kind}}))};
+  const geojson:GeoJSON.FeatureCollection={type:'FeatureCollection',features:placesRef.current.filter(p=>showSettlementsRef.current&&(currentFilter.current==='all'||p.kind===currentFilter.current)).map(p=>({type:'Feature',geometry:{type:'Point',coordinates:p.coordinates},properties:{id:p.id,name:p.name,kind:p.kind}}))};
   const source=m.getSource('settlements') as maplibregl.GeoJSONSource|undefined;
   if(source)source.setData(geojson);else m.addSource('settlements',{type:'geojson',data:geojson});
   if(!m.getLayer('settlement-dots'))m.addLayer({id:'settlement-dots',type:'circle',source:'settlements',paint:{'circle-radius':['interpolate',['linear'],['zoom'],5,1.6,8,3.5,11,5],'circle-color':['match',['get','kind'],'city','#ffb24c','town','#f1c475','village','#68d7d0','#66b6b3'],'circle-stroke-color':'#081925','circle-stroke-width':1,'circle-opacity':.85}});
@@ -151,7 +168,8 @@ export default function Explorer(){
   instance.addControl(new maplibregl.NavigationControl({showZoom:false,showCompass:true}),'bottom-right');
   const onError=(event:{error?:Error})=>{console.warn('Map resource error',event.error);setError('Some map tiles could not load. Check network access.');};
   instance.on('error',onError);
-  instance.on('load',()=>setMapReady(true));
+  instance.on('load',()=>{setMapReady(true);setMapSlow(false)});
+  const slowTimer=window.setTimeout(()=>setMapSlow(true),12000);
   instance.on('moveend',()=>{const c=instance.getCenter();setMapPosition({lat:c.lat,lng:c.lng,zoom:instance.getZoom()});});
   instance.on('style.load',()=>{
    syncBoundary();syncPlaces();
@@ -176,7 +194,7 @@ export default function Explorer(){
    button.addEventListener('click',()=>flyToCity(city));
    markers.current.push(new maplibregl.Marker({element:button,anchor:'bottom'}).setLngLat(city.coordinates).addTo(instance));
   }
-  return()=>{markers.current.forEach(marker=>marker.remove());markers.current=[];instance.remove();map.current=null;};
+  return()=>{window.clearTimeout(slowTimer);markers.current.forEach(marker=>marker.remove());markers.current=[];instance.remove();map.current=null;};
  },[flyToCity]);
  const filtered=useMemo(()=>{
   const term=deferredQuery.trim().toLocaleLowerCase();
@@ -200,6 +218,7 @@ export default function Explorer(){
  },[places,kindFilter,deferredQuery,favoritesOnly,favorites]);
  return <main className="shell">
   <div ref={mapNode} className="map" role="application" aria-label="Interactive map of Balochistan, Pakistan"/>
+  {!mapReady&&<div className="atlas-map-loading" role="status" aria-live="polite"><div className="atlas-map-loading-mark"><img src="/balochistan-xplore-logo.svg" alt="" width="56" height="56"/><span/></div><strong>Preparing the atlas</strong><p>{mapSlow?'Map tiles are taking longer than expected. Check your connection.':'Loading terrain, roads and provincial geography…'}</p></div>}
   <div className="vignette" aria-hidden="true"/>
   {wireframe&&<div className="wireframe-glow" aria-hidden="true"/>}
   <div className="atlas-topline" aria-hidden="true"/>
