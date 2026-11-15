@@ -48,7 +48,7 @@ export default function Explorer(){
  const [tour,setTour]=useState(false);
  const [tourIndex,setTourIndex]=useState(0);
  const [terrainOn,setTerrainOn]=useState(true);
- const [styleMode,setStyleMode]=useState<'dark'|'light'>('dark');
+ const [styleMode,setStyleMode]=useState<'dark'|'light'|'satellite'>('dark');
  const [wireframe,setWireframe]=useState(true);
  const orbitRef=useRef(false);
  const terrainRef=useRef(true);
@@ -69,10 +69,10 @@ export default function Explorer(){
   frame=requestAnimationFrame(tick);
   return()=>cancelAnimationFrame(frame);
  },[orbit]);
- const changeStyle=(next:'dark'|'light')=>{
+ const changeStyle=(next:'dark'|'light'|'satellite')=>{
   setOrbit(false);setStyleMode(next);
   const m=map.current;if(!m)return;
-  m.setStyle(next==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/bright');
+  m.setStyle(next==='satellite'?{version:8,sources:{imagery:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'Imagery © Esri and contributors'}},layers:[{id:'satellite-imagery',type:'raster',source:'imagery'}]}:next==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/bright');
  };
  const toggleTerrain=()=>{setTerrainOn(prev=>{const next=!prev;const m=map.current;if(m&&m.getSource('terrain'))m.setTerrain(next?{source:'terrain',exaggeration:1.45}:null);return next;});};
 
@@ -123,7 +123,7 @@ export default function Explorer(){
   {selected&&<section className="detail" aria-label={selected.name+' information'}><div className="detail-head"><span className="eyebrow">CITY SPOTLIGHT / {selected.district.toUpperCase()}</span><button className="close" onClick={()=>setSelected(null)} aria-label="Close city details"><X size={18}/></button></div><div className="detail-art"><Mountain size={60} strokeWidth={1}/><span>DISCOVER / {selected.name.toUpperCase()}</span></div><h2>{selected.name}</h2><p className="district"><MapPin size={15}/> {selected.district} District · Balochistan, Pakistan</p><p className="description">{selected.description}</p><h3>Highlights</h3><div className="highlights">{selected.highlights.map(item=><span key={item}>{item}</span>)}</div><button className="back" onClick={overview}><ArrowLeft size={16}/> Back to province</button></section>}
   <section className="explore-controls" aria-label="3D exploration controls">
    <div className="control-title"><Layers size={15}/> EXPLORE IN 3D <span className="control-live">360°</span></div>
-   <div className="control-row"><span>Map style</span><div className="control-segment"><button aria-pressed={styleMode==='dark'} className={styleMode==='dark'?'chosen':''} onClick={()=>changeStyle('dark')}>Night</button><button aria-pressed={styleMode==='light'} className={styleMode==='light'?'chosen':''} onClick={()=>changeStyle('light')}>Day</button></div></div>
+   <div className="control-row"><span>Map style</span><div className="control-segment"><button aria-pressed={styleMode==='dark'} className={styleMode==='dark'?'chosen':''} onClick={()=>changeStyle('dark')}>Night</button><button aria-pressed={styleMode==='light'} className={styleMode==='light'?'chosen':''} onClick={()=>changeStyle('light')}>Day</button><button aria-pressed={styleMode==='satellite'} className={styleMode==='satellite'?'chosen':''} onClick={()=>changeStyle('satellite')}>Satellite</button></div></div>
    <div className="control-row"><span>Real 3D terrain</span><button className={'control-switch'+(terrainOn?' on':'')} role="switch" aria-checked={terrainOn} aria-label="Toggle 3D terrain" onClick={toggleTerrain}><span/></button></div>
    <div className="control-row"><span>Neon atmosphere</span><button className={'control-switch'+(wireframe?' on':'')} role="switch" aria-checked={wireframe} aria-label="Toggle neon overlay" onClick={()=>setWireframe(v=>!v)}><span/></button></div>
    <button className="orbit-button" aria-pressed={orbit} onClick={()=>{setTour(false);setOrbit(v=>!v);}}>{orbit?<Pause size={16}/>:<RotateCw size={16}/>} {orbit?'Pause 360° orbit':'Start 360° orbit'}</button>
