@@ -1,3 +1,4 @@
+import './guide.css';
 import Link from 'next/link';
 import {topics} from '@/lib/balochistan-guide';
 export const metadata={title:'Discover Balochistan | Balochistan Xplore',description:'An introduction to the geography, people, history, culture, nature and places of Balochistan.'};
