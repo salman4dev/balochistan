@@ -54,7 +54,7 @@ export default function Explorer(){
   if(provinceOnly){
    const coords:number[][]=[];
    const walk=(a:unknown):void=>{if(!Array.isArray(a))return;if(a.length>=2&&typeof a[0]==='number'&&typeof a[1]==='number'){coords.push(a as number[]);return;}a.forEach(walk)};
-   boundaryRef.current.features.forEach(feature=>walk(feature.geometry?.coordinates));
+   boundaryRef.current.features.forEach(feature=>walk((feature.geometry as GeoJSON.Polygon|GeoJSON.MultiPolygon)?.coordinates));
    if(coords.length){const west=Math.min(...coords.map(p=>p[0])),east=Math.max(...coords.map(p=>p[0])),south=Math.min(...coords.map(p=>p[1])),north=Math.max(...coords.map(p=>p[1]));if(west>59&&east<72&&south>23&&north<34){m.setMaxBounds([[west-.8,south-.8],[east+.8,north+.8]]);m.fitBounds([[west,south],[east,north]],{padding:{top:110,bottom:90,left:typeof window!=='undefined'&&window.innerWidth>850?390:30,right:typeof window!=='undefined'&&window.innerWidth>850?300:30},duration:reduceMotion()?0:1500,pitch:0,bearing:0});}}
   }
  };
@@ -95,7 +95,7 @@ export default function Explorer(){
  const toggleTerrain=()=>{setTerrainOn(prev=>{const next=!prev;const m=map.current;if(m&&m.getSource('terrain'))m.setTerrain(next?{source:'terrain',exaggeration:1.45}:null);return next;});};
 
  const flyToCity=useCallback((city:City)=>{setTour(false);setOrbit(false);setSelected(city);map.current?.flyTo({center:city.coordinates,zoom:9.2,pitch:64,bearing:-20,duration:reduceMotion()?0:1800,essential:false});},[]);
- const overview=useCallback(()=>{setTour(false);setOrbit(false);setSelected(null);const m=map.current;if(!m)return;const source=boundaryRef.current;if(source){const coords:number[][]=[];const walk=(a:unknown):void=>{if(!Array.isArray(a))return;if(a.length>=2&&typeof a[0]==='number'&&typeof a[1]==='number'){coords.push(a as number[]);return;}a.forEach(walk)};source.features.forEach(f=>walk(f.geometry?.coordinates));if(coords.length){m.fitBounds([[Math.min(...coords.map(p=>p[0])),Math.min(...coords.map(p=>p[1]))],[Math.max(...coords.map(p=>p[0])),Math.max(...coords.map(p=>p[1]))]],{padding:80,duration:reduceMotion()?0:1200,pitch:0,bearing:0});return;}}m.flyTo({center:CENTER,zoom:5.7,pitch:0,bearing:0,duration:reduceMotion()?0:1200,essential:false});},[]);
+ const overview=useCallback(()=>{setTour(false);setOrbit(false);setSelected(null);const m=map.current;if(!m)return;const source=boundaryRef.current;if(source){const coords:number[][]=[];const walk=(a:unknown):void=>{if(!Array.isArray(a))return;if(a.length>=2&&typeof a[0]==='number'&&typeof a[1]==='number'){coords.push(a as number[]);return;}a.forEach(walk)};source.features.forEach(f=>walk((f.geometry as GeoJSON.Polygon|GeoJSON.MultiPolygon)?.coordinates));if(coords.length){m.fitBounds([[Math.min(...coords.map(p=>p[0])),Math.min(...coords.map(p=>p[1]))],[Math.max(...coords.map(p=>p[0])),Math.max(...coords.map(p=>p[1]))]],{padding:80,duration:reduceMotion()?0:1200,pitch:0,bearing:0});return;}}m.flyTo({center:CENTER,zoom:5.7,pitch:0,bearing:0,duration:reduceMotion()?0:1200,essential:false});},[]);
  useEffect(()=>{
   if(!mapNode.current||map.current)return;
   const params=new URLSearchParams(window.location.search);
