@@ -9,6 +9,24 @@ const CENTER:[number,number]=[65.4,28.2];
 type Place={id:string;name:string;kind:string;coordinates:[number,number];district:string;description:string};
 const asCity=(p:Place):City=>({id:p.id,name:p.name,district:p.district||'Balochistan',coordinates:p.coordinates,description:p.description||'Explore this settlement on the map. More verified local history, culture and landmarks will be added as sources become available.',highlights:[p.kind.charAt(0).toUpperCase()+p.kind.slice(1),'OpenStreetMap location']});
 
+
+// Compute geographic bounds in linear time without spreading thousands of coordinates
+// into Math.min/Math.max (which can exceed the JS argument limit).
+const getProvinceBounds=(collection:GeoJSON.FeatureCollection):[[number,number],[number,number]]|null=>{
+ let west=Infinity,east=-Infinity,south=Infinity,north=-Infinity;
+ const walk=(node:unknown):void=>{
+  if(!Array.isArray(node))return;
+  if(node.length>=2&&typeof node[0]==='number'&&typeof node[1]==='number'){
+   const lng=node[0],lat=node[1];
+   if(Number.isFinite(lng)&&Number.isFinite(lat)){west=Math.min(west,lng);east=Math.max(east,lng);south=Math.min(south,lat);north=Math.max(north,lat);}
+   return;
+  }
+  node.forEach(walk);
+ };
+ collection.features.forEach(feature=>walk(feature.geometry?.coordinates));
+ return Number.isFinite(west)&&west<east&&south<north?[[west,south],[east,north]]:null;
+};
+
 const reduceMotion=()=>typeof window!=='undefined'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 export default function Explorer(){
  const mapNode=useRef<HTMLDivElement|null>(null);
@@ -64,10 +82,8 @@ export default function Explorer(){
   if(!m.getLayer('province-glow'))m.addLayer({id:'province-glow',type:'line',source:'province',paint:{'line-color':'#26d8e2','line-width':8,'line-opacity':.14,'line-blur':5}});
   if(!m.getLayer('province-outline'))m.addLayer({id:'province-outline',type:'line',source:'province',paint:{'line-color':'#64e3dd','line-width':2.2,'line-opacity':.9}});
   if(provinceOnly){
-   const coords:number[][]=[];
-   const walk=(a:unknown):void=>{if(!Array.isArray(a))return;if(a.length>=2&&typeof a[0]==='number'&&typeof a[1]==='number'){coords.push(a as number[]);return;}a.forEach(walk)};
-   boundaryRef.current.features.forEach(feature=>walk((feature.geometry as GeoJSON.Polygon|GeoJSON.MultiPolygon)?.coordinates));
-   if(coords.length){const west=Math.min(...coords.map(p=>p[0])),east=Math.max(...coords.map(p=>p[0])),south=Math.min(...coords.map(p=>p[1])),north=Math.max(...coords.map(p=>p[1]));if(west>59&&east<72&&south>23&&north<34){m.setMaxBounds([[west-.8,south-.8],[east+.8,north+.8]]);m.fitBounds([[west,south],[east,north]],{padding:{top:110,bottom:90,left:typeof window!=='undefined'&&window.innerWidth>850?390:30,right:typeof window!=='undefined'&&window.innerWidth>850?300:30},duration:reduceMotion()?0:1500,pitch:0,bearing:0});}}
+   const bounds=getProvinceBounds(boundaryRef.current);
+   if(bounds){const [[west,south],[east,north]]=bounds;if(west>59&&east<72&&south>23&&north<34){m.setMaxBounds([[west-.8,south-.8],[east+.8,north+.8]]);m.fitBounds(bounds,{padding:{top:110,bottom:90,left:typeof window!=='undefined'&&window.innerWidth>850?390:30,right:typeof window!=='undefined'&&window.innerWidth>850?300:30},duration:reduceMotion()?0:1500,pitch:0,bearing:0});}}
   }
  };
 
@@ -107,7 +123,7 @@ export default function Explorer(){
  const toggleTerrain=()=>{setTerrainOn(prev=>{const next=!prev;const m=map.current;if(m&&m.getSource('terrain'))m.setTerrain(next?{source:'terrain',exaggeration:1.45}:null);return next;});};
 
  const flyToCity=useCallback((city:City)=>{setTour(false);setOrbit(false);setSelected(city);map.current?.flyTo({center:city.coordinates,zoom:9.2,pitch:64,bearing:-20,duration:reduceMotion()?0:1800,essential:false});},[]);
- const overview=useCallback(()=>{setTour(false);setOrbit(false);setSelected(null);const m=map.current;if(!m)return;const source=boundaryRef.current;if(source){const coords:number[][]=[];const walk=(a:unknown):void=>{if(!Array.isArray(a))return;if(a.length>=2&&typeof a[0]==='number'&&typeof a[1]==='number'){coords.push(a as number[]);return;}a.forEach(walk)};source.features.forEach(f=>walk((f.geometry as GeoJSON.Polygon|GeoJSON.MultiPolygon)?.coordinates));if(coords.length){m.fitBounds([[Math.min(...coords.map(p=>p[0])),Math.min(...coords.map(p=>p[1]))],[Math.max(...coords.map(p=>p[0])),Math.max(...coords.map(p=>p[1]))]],{padding:80,duration:reduceMotion()?0:1200,pitch:0,bearing:0});return;}}m.flyTo({center:CENTER,zoom:5.7,pitch:0,bearing:0,duration:reduceMotion()?0:1200,essential:false});},[]);
+ const overview=useCallback(()=>{setTour(false);setOrbit(false);setSelected(null);const m=map.current;if(!m)return;const bounds=boundaryRef.current?getProvinceBounds(boundaryRef.current):null;if(bounds){m.fitBounds(bounds,{padding:{top:100,bottom:80,left:typeof window!=='undefined'&&window.innerWidth>850?390:30,right:typeof window!=='undefined'&&window.innerWidth>850?300:30},duration:reduceMotion()?0:1200,pitch:0,bearing:0});return;}m.flyTo({center:CENTER,zoom:5.7,pitch:0,bearing:0,duration:reduceMotion()?0:1200,essential:false});},[]);
  useEffect(()=>{
   if(!mapNode.current||map.current)return;
   const params=new URLSearchParams(window.location.search);
