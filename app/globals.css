@@ -73,3 +73,19 @@
 @media(max-width:1020px){.atlas-navbar{padding:14px 18px}.atlas-main-nav.is-open{z-index:10;border:1px solid #678b8466;background:#09212bf9;box-shadow:0 20px 60px #000a}.sidebar{top:101px}.explore-controls{top:101px}}
 @media(max-width:850px){.sidebar{left:12px;top:84px;width:min(350px,calc(100vw - 24px));max-height:44svh;padding:16px;background:#091e29ef}.sidebar h1{font-size:36px;letter-spacing:-2px}.sidebar .lead{font-size:12px}.explore-controls{top:auto;right:12px;bottom:55px;width:min(215px,calc(100vw - 24px));padding:13px}.detail{bottom:10px;left:10px;right:10px;max-height:55svh}.zoom-tools{bottom:340px}.atlas-coordinate{display:none}.brand-icon{width:40px;height:40px}.atlas-navbar{padding:10px 12px}}
 @media(max-width:420px){.sidebar{max-height:42svh}.sidebar .lead{display:none}.sidebar h1{margin:10px 0}.city-list{gap:5px}.city-item{padding:9px}.explore-controls{width:195px}.control-row{font-size:11px}.atlas-main-nav{top:66px}}
+
+/* Accessible compact map toolbars */
+.atlas-places-toggle,.atlas-controls-toggle{position:absolute;z-index:5;display:none;align-items:center;gap:8px;background:#0a2732ed;color:#f4e3ca;border:1px solid #a68a65a6;box-shadow:0 8px 24px #0006;border-radius:11px;padding:11px 13px;font-size:12px;font-weight:700;backdrop-filter:blur(18px)}
+.atlas-places-toggle:hover,.atlas-controls-toggle:hover{background:#23434b}
+@media(max-width:850px){
+ .atlas-places-toggle{display:flex;top:78px;left:12px}
+ .atlas-controls-toggle{display:flex;right:12px;bottom:66px}
+ .sidebar{top:127px;max-height:calc(100svh - 210px);width:min(350px,calc(100vw - 24px));transition:opacity .2s ease,transform .2s ease,visibility .2s}
+ .sidebar.sidebar-hidden{opacity:0;visibility:hidden;transform:translateY(-8px);pointer-events:none}
+ .explore-controls{display:none;top:auto;bottom:114px;right:12px;max-height:calc(100svh - 200px);overflow-y:auto;width:min(270px,calc(100vw - 24px))}
+ .explore-controls.controls-open{display:block}
+ .shell:has(.detail) .explore-controls,.shell:has(.detail) .atlas-controls-toggle{display:none}
+ .zoom-tools{right:12px;bottom:140px}
+ .detail{z-index:6}
+}
+@media(min-width:851px){.sidebar.sidebar-hidden{display:none}}
