@@ -15,10 +15,17 @@ export default function Explorer(){
  const [terrain,setTerrain]=useState<'loading'|'enabled'|'unavailable'>('loading');
  const [error,setError]=useState('');
  const [orbit,setOrbit]=useState(false);
+ const [tour,setTour]=useState(false);
+ const [tourIndex,setTourIndex]=useState(0);
  const [terrainOn,setTerrainOn]=useState(true);
  const [styleMode,setStyleMode]=useState<'dark'|'light'>('dark');
  const [wireframe,setWireframe]=useState(true);
  const orbitRef=useRef(false);
+ const terrainRef=useRef(true);
+ useEffect(()=>{terrainRef.current=terrainOn;},[terrainOn]);
+ useEffect(()=>{if(!tour)return;const id=window.setInterval(()=>setTourIndex(i=>(i+1)%cities.length),6500);return()=>window.clearInterval(id);},[tour]);
+ useEffect(()=>{if(tour)flyToCityForTour(cities[tourIndex]);},[tour,tourIndex]);
+ const flyToCityForTour=(city:City)=>{setSelected(city);map.current?.flyTo({center:city.coordinates,zoom:8.6,pitch:65,bearing:25,duration:reduceMotion()?0:2400,essential:false});};
  useEffect(()=>{orbitRef.current=orbit;},[orbit]);
  useEffect(()=>{
   if(!orbit)return;
@@ -33,14 +40,14 @@ export default function Explorer(){
   return()=>cancelAnimationFrame(frame);
  },[orbit]);
  const changeStyle=(next:'dark'|'light')=>{
-  setStyleMode(next);
+  setOrbit(false);setStyleMode(next);
   const m=map.current;if(!m)return;
   m.setStyle(next==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/bright');
  };
  const toggleTerrain=()=>{setTerrainOn(prev=>{const next=!prev;const m=map.current;if(m&&m.getSource('terrain'))m.setTerrain(next?{source:'terrain',exaggeration:1.45}:null);return next;});};
 
- const flyToCity=useCallback((city:City)=>{setOrbit(false);setSelected(city);map.current?.flyTo({center:city.coordinates,zoom:9.2,pitch:64,bearing:-20,duration:reduceMotion()?0:1800,essential:false});},[]);
- const overview=useCallback(()=>{setOrbit(false);setSelected(null);map.current?.flyTo({center:CENTER,zoom:6.0,pitch:48,bearing:0,duration:reduceMotion()?0:1400,essential:false});},[]);
+ const flyToCity=useCallback((city:City)=>{setTour(false);setOrbit(false);setSelected(city);map.current?.flyTo({center:city.coordinates,zoom:9.2,pitch:64,bearing:-20,duration:reduceMotion()?0:1800,essential:false});},[]);
+ const overview=useCallback(()=>{setTour(false);setOrbit(false);setSelected(null);map.current?.flyTo({center:CENTER,zoom:6.0,pitch:48,bearing:0,duration:reduceMotion()?0:1400,essential:false});},[]);
  useEffect(()=>{
   if(!mapNode.current||map.current)return;
   const instance=new maplibregl.Map({container:mapNode.current,style:'https://tiles.openfreemap.org/styles/dark',center:CENTER,zoom:6,pitch:48,bearing:0,maxPitch:80,attributionControl:{}});
@@ -52,7 +59,7 @@ export default function Explorer(){
    try{
     if(instance.getSource('terrain'))return;
     instance.addSource('terrain',{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',tileSize:512});
-    instance.setTerrain(terrainOn?{source:'terrain',exaggeration:1.45}:null);
+    instance.setTerrain(terrainRef.current?{source:'terrain',exaggeration:1.45}:null);
     setTerrain('enabled');
    }catch(err){console.warn('Terrain initialization failed',err);setTerrain('unavailable');}
   });
@@ -85,7 +92,8 @@ export default function Explorer(){
    <div className="control-row"><span>Map style</span><div className="control-segment"><button aria-pressed={styleMode==='dark'} className={styleMode==='dark'?'chosen':''} onClick={()=>changeStyle('dark')}>Night</button><button aria-pressed={styleMode==='light'} className={styleMode==='light'?'chosen':''} onClick={()=>changeStyle('light')}>Day</button></div></div>
    <div className="control-row"><span>3D mountains</span><button className={'control-switch'+(terrainOn?' on':'')} role="switch" aria-checked={terrainOn} aria-label="Toggle 3D terrain" onClick={toggleTerrain}><span/></button></div>
    <div className="control-row"><span>Neon atmosphere</span><button className={'control-switch'+(wireframe?' on':'')} role="switch" aria-checked={wireframe} aria-label="Toggle neon overlay" onClick={()=>setWireframe(v=>!v)}><span/></button></div>
-   <button className="orbit-button" aria-pressed={orbit} onClick={()=>setOrbit(v=>!v)}>{orbit?<Pause size={16}/>:<RotateCw size={16}/>} {orbit?'Pause 360° orbit':'Start 360° orbit'}</button>
+   <button className="orbit-button" aria-pressed={orbit} onClick={()=>{setTour(false);setOrbit(v=>!v);}}>{orbit?<Pause size={16}/>:<RotateCw size={16}/>} {orbit?'Pause 360° orbit':'Start 360° orbit'}</button>
+   <button className="tour-button" aria-pressed={tour} onClick={()=>{setOrbit(false);setTour(v=>{if(!v)setTourIndex(0);return !v;});}}>{tour?<Pause size={16}/>:<Play size={16}/>} {tour?'Stop guided city tour':'Tour Turbat · Gwadar · Quetta'}</button>
    <div className="control-actions"><button onClick={()=>{setOrbit(false);map.current?.easeTo({pitch:75,bearing:map.current.getBearing(),duration:reduceMotion()?0:900})}}><Eye size={15}/> Tilt view</button><button onClick={overview}><Compass size={15}/> Reset</button></div>
   </section>
   <div className="map-hint"><Compass size={15}/> Drag to explore · Scroll to zoom · Right-drag to tilt</div>
