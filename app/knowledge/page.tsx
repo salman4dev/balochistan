@@ -1,0 +1,53 @@
+import Link from 'next/link';
+import Photo from '@/components/commons-photo';
+import './knowledge.css';
+export const metadata={title:'Balochistan Facts, Business & Universities | Balochistan Xplore',description:'Explore verified census statistics, economic sectors, universities, and official information sources for Balochistan, Pakistan.'};
+const pbs='https://www.pbs.gov.pk/wp-content/uploads/2020/07/Key_Findings_Report.pdf';
+const hec='https://www.hec.gov.pk/english/universities/Pages/recognised.aspx';
+const pdma='https://www.pdma.gob.pk/about-us/balochistan-profile';
+const stat=[
+ {label:'Population',number:'14,894,402',desc:'Residents recorded in the 2023 census',source:'PBS 2023'},
+ {label:'Land area',number:'347,190',unit:'km²',desc:'Province area — Pakistan’s largest by size',source:'PBS 2023'},
+ {label:'Population density',number:'42.9',unit:'per km²',desc:'Average residents per square kilometre',source:'PBS 2023'},
+ {label:'Urban population',number:'30.96%',desc:'Share of residents living in urban areas',source:'PBS 2023'},
+ {label:'Rural population',number:'10,282,574',desc:'Residents in rural localities',source:'PBS 2023'},
+ {label:'Urban population count',number:'4,611,828',desc:'Residents in urban localities',source:'PBS 2023'},
+ {label:'Average annual growth',number:'3.20%',desc:'Intercensal growth rate, 2017–2023',source:'PBS 2023'},
+ {label:'Population in 2017',number:'12,335,129',desc:'Previous census count for comparison',source:'PBS 2017'}
+];
+const sectors=[
+ {name:'Agriculture & dates',tag:'AGRICULTURE',photo:'Turbat Kech Balochistan date palms orchard Pakistan',description:'Date cultivation is especially important in Makran. Farming conditions differ across valleys, highlands and irrigated areas.',examples:['Dates and orchards','Irrigated crops','Agricultural trade']},
+ {name:'Livestock & pastoral livelihoods',tag:'LIVESTOCK',photo:'Balochistan Pakistan sheep goats livestock grazing',description:'Livestock and rangeland resources are important to many rural households and local markets.',examples:['Sheep and goats','Pastoral production','Rangeland management']},
+ {name:'Fisheries & maritime trade',tag:'COAST',photo:'Gwadar Pasni Balochistan fishing boats harbor',description:'Fishing communities and coastal services operate along the Arabian Sea around Gwadar, Pasni and Ormara.',examples:['Fishing and processing','Cold chain logistics','Port-linked services']},
+ {name:'Minerals, gas & energy',tag:'RESOURCES',photo:'Balochistan Pakistan mineral mine mountains',description:'The province has mining and hydrocarbon activity, including coal, natural gas and metallic mineral resources.',examples:['Mineral extraction','Natural gas','Energy infrastructure']},
+ {name:'Transport, trade & tourism',tag:'SERVICES',photo:'Makran Coastal Highway Balochistan Pakistan landscape road',description:'Road connectivity, local commerce, hospitality and emerging tourism services have regional opportunities and constraints.',examples:['Transport networks','Retail and local markets','Travel and accommodation']}
+];
+const universities=[
+ {name:'University of Balochistan',city:'Quetta',focus:'Multidisciplinary public higher education'},
+ {name:'BUITEMS',city:'Quetta',focus:'Information technology, engineering, management and sciences'},
+ {name:'Sardar Bahadur Khan Women’s University',city:'Quetta',focus:'Women’s higher education'},
+ {name:'Balochistan University of Engineering & Technology',city:'Khuzdar',focus:'Engineering and technology'},
+ {name:'University of Turbat',city:'Turbat',focus:'Higher education in the Makran region'},
+ {name:'University of Gwadar',city:'Gwadar',focus:'Public university serving the coastal region'},
+ {name:'University of Loralai',city:'Loralai',focus:'Multidisciplinary education in northeastern Balochistan'},
+ {name:'University of Makran',city:'Panjgur',focus:'Higher education in Panjgur and surrounding areas'},
+ {name:'Lasbela University of Agriculture, Water & Marine Sciences',city:'Uthal',focus:'Agriculture, water, marine and allied sciences'},
+ {name:'Bolan University of Medical & Health Sciences',city:'Quetta',focus:'Medical and health sciences'}
+];
+const otherTopics=[
+ {label:'Geography & environment',info:'Mountain systems, dry valleys, the Makran coast, juniper forests, marine habitats and water resources.',url:'/discover#geography'},
+ {label:'Communities & languages',info:'Balochi, Brahui, Pashto and other languages, cultural expressions and regional identities.',url:'/discover#people'},
+ {label:'History & heritage',info:'Mehrgarh, Kalat, trade networks, regional histories and archaeological heritage.',url:'/discover#history'},
+ {label:'Tourism & destinations',info:'Gwadar, Hingol, Ziarat, Quetta, Turbat and more across the interactive atlas.',url:'/discover#travel'},
+ {label:'Food & everyday life',info:'Sajji, kaak, dates and diverse local food and hospitality traditions.',url:'/discover#food'},
+ {label:'Education & institutions',info:'Universities, skills development and access to higher education throughout the province.',url:'/discover#education'}
+];
+export default function Knowledge(){return <main className="knowledge">
+ <nav className="knowledge-nav"><Link href="/" className="knowledge-brand"><img src="/balochistan-xplore-logo.svg" alt="" width="36" height="36"/>BALOCHISTAN <b>XPLORE</b></Link><div><Link href="/">3D Atlas</Link><Link href="/discover">Discover</Link><Link href="/updates">Stories</Link></div></nav>
+ <header className="knowledge-hero"><div className="knowledge-hero-copy"><span className="knowledge-kicker">RESEARCH / ECONOMY / EDUCATION</span><h1>Know the <em>province.</em></h1><p>Explore Balochistan through dated official statistics, its livelihoods, higher education institutions and a curated knowledge directory.</p><div className="knowledge-actions"><a href="#statistics">View statistics ↓</a><a href="#business">Explore business ↓</a><a href="#universities">Universities ↓</a></div><small>Official references linked below · Numbers are not live estimates</small></div><div className="knowledge-hero-photo"><Photo query="Quetta Balochistan Pakistan mountain valley city aerial" alt="Balochistan mountain valley and city"/><span>THE LAND • THE PEOPLE • THE POSSIBILITIES</span></div></header>
+ <section className="knowledge-section" id="statistics"><div className="knowledge-heading"><div><span>01 / BY THE NUMBERS</span><h2>Balochistan in figures</h2><p>Population and area figures from Pakistan Bureau of Statistics. Census reference year: <strong>2023</strong>.</p></div><a href={pbs} target="_blank" rel="noopener noreferrer">Official PBS source ↗</a></div><div className="knowledge-stat-grid">{stat.map(item=><article key={item.label} className="knowledge-stat"><span>{item.label}</span><div><strong>{item.number}</strong>{item.unit&&<small>{item.unit}</small>}</div><p>{item.desc}</p><footer>{item.source}</footer></article>)}</div><p className="knowledge-disclaimer">All values are historical census measures. Do not interpret 2023 population data as a 2026 population estimate. Statistics can change after subsequent official releases.</p></section>
+ <section className="knowledge-section" id="business"><div className="knowledge-heading"><div><span>02 / INDUSTRY & LIVELIHOODS</span><h2>Business & economy</h2><p>Explore principal economic activities and potential areas of local enterprise. These are sector descriptions, not investment returns or business counts.</p></div><a href={pdma} target="_blank" rel="noopener noreferrer">Provincial profile source ↗</a></div><div className="knowledge-sector-grid">{sectors.map(item=><article className="knowledge-sector" key={item.name}><div className="knowledge-sector-photo"><Photo query={item.photo} alt={item.name+' in Balochistan'}/></div><div className="knowledge-sector-body"><span>{item.tag}</span><h3>{item.name}</h3><p>{item.description}</p><div className="knowledge-chips">{item.examples.map(e=><small key={e}>{e}</small>)}</div></div></article>)}</div><p className="knowledge-disclaimer">Business conditions, regulations and infrastructure vary by district. Verify current conditions with relevant authorities before making commercial decisions.</p></section>
+ <section className="knowledge-section" id="universities"><div className="knowledge-heading"><div><span>03 / HIGHER EDUCATION</span><h2>Universities of Balochistan</h2><p>A selected institutional directory with locations and educational focus. This is not a claim to enumerate every university, subcampus or college.</p></div><a href={hec} target="_blank" rel="noopener noreferrer">HEC recognized institutions ↗</a></div><div className="knowledge-university-feature"><Photo query="University of Turbat Balochistan Pakistan campus" alt="University campus in Balochistan"/><div><span>EDUCATION ACROSS THE PROVINCE</span><h3>Learn, research and build.</h3><p>From Quetta to Turbat, Khuzdar, Gwadar, Loralai and Panjgur, universities serve diverse communities. Check institutional websites and HEC for current programs, accreditation, campuses and admissions.</p></div></div><div className="knowledge-uni-grid">{universities.map((u,i)=><article key={u.name}><span>{String(i+1).padStart(2,'0')} / {u.city.toUpperCase()}</span><h3>{u.name}</h3><p>{u.focus}</p><a href={hec} target="_blank" rel="noopener noreferrer">Verify at HEC ↗</a></article>)}</div><p className="knowledge-disclaimer">Institutions and campuses can change status. Some specialist institutions and private providers are not covered here. Always confirm recognition of the precise institution and campus with HEC.</p></section>
+ <section className="knowledge-section" id="topics"><div className="knowledge-heading"><div><span>04 / THE BIGGER PICTURE</span><h2>Keep exploring</h2><p>Discover more of Balochistan’s landscape, people, communities and everyday life.</p></div><Link href="/discover">Full field guide ↗</Link></div><div className="knowledge-topic-grid">{otherTopics.map(t=><Link href={t.url} key={t.label}><h3>{t.label}</h3><p>{t.info}</p><span>Read topic ↗</span></Link>)}</div></section>
+ <footer className="knowledge-footer"><div><strong>Sources & transparency</strong><p>Statistics: Pakistan Bureau of Statistics, Census 2023. Institutions: Higher Education Commission Pakistan directory. Economic sectors: Provincial Disaster Management Authority Balochistan profile. Photos: Wikimedia Commons with attribution links.</p><div><a href={pbs} target="_blank" rel="noopener noreferrer">PBS ↗</a><a href={hec} target="_blank" rel="noopener noreferrer">HEC ↗</a><a href={pdma} target="_blank" rel="noopener noreferrer">PDMA ↗</a></div></div><Link href="/">Return to map ↑</Link></footer>
+ </main>}
