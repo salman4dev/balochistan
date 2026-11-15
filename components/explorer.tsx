@@ -23,7 +23,7 @@ const getProvinceBounds=(collection:GeoJSON.FeatureCollection):[[number,number],
   }
   node.forEach(walk);
  };
- collection.features.forEach(feature=>walk(feature.geometry?.coordinates));
+ collection.features.forEach(feature=>walk((feature.geometry as GeoJSON.Polygon|GeoJSON.MultiPolygon)?.coordinates));
  return Number.isFinite(west)&&west<east&&south<north?[[west,south],[east,north]]:null;
 };
 
