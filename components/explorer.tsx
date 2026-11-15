@@ -1,8 +1,9 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import maplibregl,{type Map as MapType,type Marker} from 'maplibre-gl';
-import {ArrowLeft,Compass,MapPin,Mountain,Search,X,ZoomIn,ZoomOut,RotateCw,Layers,Pause,Play,Eye,Share2,Navigation,LocateFixed,SlidersHorizontal} from 'lucide-react';
+import {ArrowLeft,Compass,MapPin,Mountain,Search,X,ZoomIn,ZoomOut,RotateCw,Layers,Pause,Play,Eye,Share2,Navigation,LocateFixed,SlidersHorizontal,Bookmark,BookmarkCheck,Keyboard} from 'lucide-react';
 import {cities,type City} from '@/lib/cities';
+import Photo from '@/components/commons-photo';
 
 const CENTER:[number,number]=[65.4,28.2];
 type Place={id:string;name:string;kind:string;coordinates:[number,number];district:string;description:string};
@@ -15,6 +16,11 @@ export default function Explorer(){
  const markers=useRef<Marker[]>([]);
  const [selected,setSelected]=useState<City|null>(null);
  const [query,setQuery]=useState('');
+ const [favorites,setFavorites]=useState<string[]>([]);
+ const [favoritesOnly,setFavoritesOnly]=useState(false);
+ useEffect(()=>{try{const stored=JSON.parse(localStorage.getItem('balochistan-xplore-favorites')||'[]');if(Array.isArray(stored))setFavorites(stored.filter((v):v is string=>typeof v==='string'));}catch{}},[]);
+ const toggleFavorite=(id:string)=>{setFavorites(previous=>{const next=previous.includes(id)?previous.filter(x=>x!==id):[...previous,id];try{localStorage.setItem('balochistan-xplore-favorites',JSON.stringify(next))}catch{}return next;});};
+
  const [kindFilter,setKindFilter]=useState<'all'|'city'|'town'|'village'|'hamlet'>('all');
  const [showSettlements,setShowSettlements]=useState(true);
  const [showRelief,setShowRelief]=useState(true);
@@ -132,7 +138,7 @@ export default function Explorer(){
   }
   return()=>{markers.current.forEach(marker=>marker.remove());markers.current=[];instance.remove();map.current=null;};
  },[flyToCity]);
- const filtered=[...cities.filter(c=>kindFilter==='all'||kindFilter==='city'),...places.filter(p=>(kindFilter==='all'||p.kind===kindFilter)&&!cities.some(c=>c.name.toLowerCase()===p.name.toLowerCase())).map(asCity)].filter(city=>(city.name+' '+city.district).toLowerCase().includes(query.trim().toLowerCase())).slice(0,70);
+ const filtered=[...cities.filter(c=>kindFilter==='all'||kindFilter==='city'),...places.filter(p=>(kindFilter==='all'||p.kind===kindFilter)&&!cities.some(c=>c.name.toLowerCase()===p.name.toLowerCase())).map(asCity)].filter(city=>(!favoritesOnly||favorites.includes(city.id))&&(city.name+' '+city.district).toLowerCase().includes(query.trim().toLowerCase())).slice(0,70);
  return <main className="shell">
   <div ref={mapNode} className="map" role="application" aria-label="Interactive map of Balochistan, Pakistan"/>
   <div className="vignette" aria-hidden="true"/>
@@ -143,11 +149,12 @@ export default function Explorer(){
   <aside className="sidebar" aria-label="Explore destinations"><div className="eyebrow"><Compass size={14}/> DISCOVER THE UNDISCOVERED</div><h1>Explore<br/><em>Balochistan.</em></h1><p className="lead">A new perspective on Pakistan’s largest province. Discover places, landscapes and stories.</p>
    <label className="search"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search cities and districts" placeholder="Search city or district…" />{query&&<button onClick={()=>setQuery('')} aria-label="Clear search"><X size={16}/></button>}</label>
    <div className="place-filters" role="group" aria-label="Filter settlement types">{(['all','city','town','village','hamlet'] as const).map(kind=><button key={kind} aria-pressed={kindFilter===kind} className={kindFilter===kind?'active':''} onClick={()=>setKindFilter(kind)}>{kind==='all'?'All places':kind.charAt(0).toUpperCase()+kind.slice(1)+'s'}</button>)}</div>
+   <button className={'favorite-filter'+(favoritesOnly?' active':'')} aria-pressed={favoritesOnly} onClick={()=>setFavoritesOnly(v=>!v)}><Bookmark size={15}/> Saved places <span>{favorites.length}</span></button>
    <div className="section-heading"><span>CITIES, TOWNS & VILLAGES</span><span>{String(filtered.length).padStart(2,'0')}</span></div>
    <div className="city-list">{filtered.map((city,i)=><button key={city.id} className={'city-item'+(selected?.id===city.id?' active':'')} onClick={()=>flyToCity(city)} aria-pressed={selected?.id===city.id}><span className="city-index">{String(i+1).padStart(2,'0')}</span><span className="city-meta"><strong>{city.name}</strong><small>{city.district} District</small></span><MapPin size={18}/></button>)}{filtered.length===0&&<p className="empty">No matching settlement in the available dataset.</p>}</div>
    <div className="sidebar-bottom"><span className="status-dot"/> {placesStatus} · {boundaryStatus} · {terrain==='enabled'?'3D terrain on':terrain==='loading'?'Loading terrain':'Terrain unavailable'}</div>
   </aside>
-  {selected&&<section className="detail" aria-label={selected.name+' information'}><div className="detail-head"><span className="eyebrow">DESTINATION PROFILE / {selected.district.toUpperCase()}</span><button className="close" onClick={()=>setSelected(null)} aria-label="Close city details"><X size={18}/></button></div><div className="detail-art"><Mountain size={60} strokeWidth={1}/><span>DISCOVER / {selected.name.toUpperCase()}</span></div><h2>{selected.name}</h2><p className="district"><MapPin size={15}/> {selected.district} District · Balochistan, Pakistan</p><p className="description">{selected.description}</p>{selected.region&&<div className="destination-facts"><div><span>REGION</span><strong>{selected.region}</strong></div><div><span>LANDSCAPE</span><strong>{selected.landscape}</strong></div><div><span>CULTURE</span><strong>{selected.culture}</strong></div></div>}{selected.places&&<><h3>Places to discover</h3><ul className="destination-places">{selected.places.map(place=><li key={place}>{place}</li>)}</ul></>}<h3>Highlights</h3><div className="highlights">{selected.highlights.map(item=><span key={item}>{item}</span>)}</div>{selected.sourceUrl&&<a className="destination-source" href={selected.sourceUrl} target="_blank" rel="noopener noreferrer">Explore reference information ↗</a>}<button className="back" onClick={overview}><ArrowLeft size={16}/> Back to province</button></section>}
+  {selected&&<section className="detail" aria-label={selected.name+' information'}><div className="detail-head"><span className="eyebrow">DESTINATION PROFILE / {selected.district.toUpperCase()}</span><button className="close" onClick={()=>setSelected(null)} aria-label="Close city details"><X size={18}/></button></div><Photo query={selected.name+' Balochistan Pakistan'} alt={selected.name+' Balochistan'}/><div className="detail-toolbar"><button onClick={()=>toggleFavorite(selected.id)} aria-pressed={favorites.includes(selected.id)}>{favorites.includes(selected.id)?<BookmarkCheck size={16}/>:<Bookmark size={16}/>} {favorites.includes(selected.id)?'Saved to your places':'Save this place'}</button><button onClick={()=>{const url='https://www.openstreetmap.org/?mlat='+selected.coordinates[1]+'&mlon='+selected.coordinates[0]+'#map=12/'+selected.coordinates[1]+'/'+selected.coordinates[0];window.open(url,'_blank','noopener,noreferrer')}}><MapPin size={15}/> Open in OSM ↗</button></div><h2>{selected.name}</h2><p className="district"><MapPin size={15}/> {selected.district} District · Balochistan, Pakistan</p><p className="description">{selected.description}</p>{selected.region&&<div className="destination-facts"><div><span>REGION</span><strong>{selected.region}</strong></div><div><span>LANDSCAPE</span><strong>{selected.landscape}</strong></div><div><span>CULTURE</span><strong>{selected.culture}</strong></div></div>}{selected.places&&<><h3>Places to discover</h3><ul className="destination-places">{selected.places.map(place=><li key={place}>{place}</li>)}</ul></>}<h3>Highlights</h3><div className="highlights">{selected.highlights.map(item=><span key={item}>{item}</span>)}</div>{selected.sourceUrl&&<a className="destination-source" href={selected.sourceUrl} target="_blank" rel="noopener noreferrer">Explore reference information ↗</a>}<button className="back" onClick={overview}><ArrowLeft size={16}/> Back to province</button></section>}
   <section className="explore-controls" aria-label="3D exploration controls">
    <div className="control-title"><Layers size={15}/> EXPLORE IN 3D <span className="control-live">360°</span></div>
    <div className="control-row"><span>Map style</span><div className="control-segment"><button aria-pressed={styleMode==='dark'} className={styleMode==='dark'?'chosen':''} onClick={()=>changeStyle('dark')}>Night</button><button aria-pressed={styleMode==='light'} className={styleMode==='light'?'chosen':''} onClick={()=>changeStyle('light')}>Day</button><button aria-pressed={styleMode==='satellite'} className={styleMode==='satellite'?'chosen':''} onClick={()=>changeStyle('satellite')}>Satellite</button></div></div>
