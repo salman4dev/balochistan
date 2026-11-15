@@ -135,3 +135,8 @@
 .atlas-map-loading>p{color:#b4ceca;font-size:13px;max-width:280px;line-height:1.65;margin:0}
 @keyframes atlas-map-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.atlas-map-loading-mark>span{animation:none}}
+
+/* Recovery control shown only when the initial map tiles stall */
+.atlas-map-retry{pointer-events:auto;display:inline-flex;align-items:center;justify-content:center;margin-top:8px;padding:12px 17px;border:1px solid #e8b879;border-radius:9px;background:#e8b879;color:#10252a;font-size:12px;font-weight:800;box-shadow:0 8px 30px #0004}
+.atlas-map-retry:hover{background:#f6d6a0}
+.atlas-map-retry:focus-visible{outline:3px solid #fff0cd;outline-offset:3px}
