@@ -33,3 +33,19 @@
 .knowledge-disclaimer>a{color:#f1c68d;text-decoration:underline}
 .knowledge-footer>div>div{flex-wrap:wrap}
 @media(max-width:750px){.knowledge-literacy{grid-template-columns:1fr;padding:20px;gap:18px}.knowledge-source-feature{flex-direction:column;align-items:flex-start;padding:21px}.knowledge-source-feature>a{max-width:none}}
+
+/* Regional explorer: lightweight CSS-only navigation to real atlas coordinates */
+.knowledge-region-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.knowledge-region-card{display:flex;flex-direction:column;min-height:220px;border:1px solid #5c777278;border-radius:17px;background:linear-gradient(145deg,#17383f,#0d2631);padding:23px;transition:transform .2s,border-color .2s,background .2s}
+.knowledge-region-card:hover{transform:translateY(-3px);border-color:#e6b47e;background:linear-gradient(145deg,#21464a,#102d36)}
+.knowledge-region-card>span{font-size:10px;letter-spacing:1.3px;font-weight:800;color:#ebb97f}
+.knowledge-region-card h3{font-size:clamp(24px,2.8vw,34px);letter-spacing:-1px;margin:15px 0 7px}
+.knowledge-region-card strong{font-size:12px;color:#d4e5df}
+.knowledge-region-card p{font-size:12px;line-height:1.7;color:#a7c7c1;margin:13px 0 17px}
+.knowledge-region-card small{margin-top:auto;color:#f0c48b;font-size:11px}
+.knowledge-uni-links{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin-top:15px}
+.knowledge-uni-grid .knowledge-uni-links>a{display:inline-flex;gap:5px;align-items:center;margin:0;font-size:11px;line-height:1.4}
+.knowledge-uni-links>a:hover{text-decoration:underline}
+@media(max-width:950px){.knowledge-region-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.knowledge-region-grid{grid-template-columns:1fr}.knowledge-region-card{min-height:185px}}
+@media(prefers-reduced-motion:reduce){.knowledge-region-card{transition:none}}
