@@ -20,6 +20,9 @@ export default function Explorer(){
  const [showRelief,setShowRelief]=useState(true);
  const [mapPosition,setMapPosition]=useState({lat:28.2,lng:65.4,zoom:6});
  const [notice,setNotice]=useState('');
+ const [menuOpen,setMenuOpen]=useState(false);
+ const [provinceOnly,setProvinceOnly]=useState(true);
+ const [mapReady,setMapReady]=useState(false);
  const shareLocation=async()=>{const m=map.current;if(!m)return;const c=m.getCenter();const url=new URL(window.location.href);url.searchParams.set('lng',c.lng.toFixed(5));url.searchParams.set('lat',c.lat.toFixed(5));url.searchParams.set('z',m.getZoom().toFixed(1));url.searchParams.set('bearing',m.getBearing().toFixed(0));url.searchParams.set('pitch',m.getPitch().toFixed(0));try{await navigator.clipboard.writeText(url.toString());setNotice('Map view link copied');}catch{setNotice('Copy the URL from your address bar');}};
 
  const [places,setPlaces]=useState<Place[]>([]);
@@ -48,6 +51,12 @@ export default function Explorer(){
   if(source)source.setData(boundaryRef.current);else m.addSource('province',{type:'geojson',data:boundaryRef.current});
   if(!m.getLayer('province-glow'))m.addLayer({id:'province-glow',type:'line',source:'province',paint:{'line-color':'#26d8e2','line-width':8,'line-opacity':.14,'line-blur':5}});
   if(!m.getLayer('province-outline'))m.addLayer({id:'province-outline',type:'line',source:'province',paint:{'line-color':'#64e3dd','line-width':2.2,'line-opacity':.9}});
+  if(provinceOnly){
+   const coords:number[][]=[];
+   const walk=(a:unknown):void=>{if(!Array.isArray(a))return;if(a.length>=2&&typeof a[0]==='number'&&typeof a[1]==='number'){coords.push(a as number[]);return;}a.forEach(walk)};
+   boundaryRef.current.features.forEach(feature=>walk(feature.geometry?.coordinates));
+   if(coords.length){const west=Math.min(...coords.map(p=>p[0])),east=Math.max(...coords.map(p=>p[0])),south=Math.min(...coords.map(p=>p[1])),north=Math.max(...coords.map(p=>p[1]));if(west>59&&east<72&&south>23&&north<34){m.setMaxBounds([[west-.8,south-.8],[east+.8,north+.8]]);m.fitBounds([[west,south],[east,north]],{padding:{top:110,bottom:90,left:typeof window!=='undefined'&&window.innerWidth>850?390:30,right:typeof window!=='undefined'&&window.innerWidth>850?300:30},duration:reduceMotion()?0:1500,pitch:0,bearing:0});}}
+  }
  };
 
  const [terrain,setTerrain]=useState<'loading'|'enabled'|'unavailable'>('loading');
@@ -86,7 +95,7 @@ export default function Explorer(){
  const toggleTerrain=()=>{setTerrainOn(prev=>{const next=!prev;const m=map.current;if(m&&m.getSource('terrain'))m.setTerrain(next?{source:'terrain',exaggeration:1.45}:null);return next;});};
 
  const flyToCity=useCallback((city:City)=>{setTour(false);setOrbit(false);setSelected(city);map.current?.flyTo({center:city.coordinates,zoom:9.2,pitch:64,bearing:-20,duration:reduceMotion()?0:1800,essential:false});},[]);
- const overview=useCallback(()=>{setTour(false);setOrbit(false);setSelected(null);map.current?.flyTo({center:CENTER,zoom:6.0,pitch:48,bearing:0,duration:reduceMotion()?0:1400,essential:false});},[]);
+ const overview=useCallback(()=>{setTour(false);setOrbit(false);setSelected(null);const m=map.current;if(!m)return;const source=boundaryRef.current;if(source){const coords:number[][]=[];const walk=(a:unknown):void=>{if(!Array.isArray(a))return;if(a.length>=2&&typeof a[0]==='number'&&typeof a[1]==='number'){coords.push(a as number[]);return;}a.forEach(walk)};source.features.forEach(f=>walk(f.geometry?.coordinates));if(coords.length){m.fitBounds([[Math.min(...coords.map(p=>p[0])),Math.min(...coords.map(p=>p[1]))],[Math.max(...coords.map(p=>p[0])),Math.max(...coords.map(p=>p[1]))]],{padding:80,duration:reduceMotion()?0:1200,pitch:0,bearing:0});return;}}m.flyTo({center:CENTER,zoom:5.7,pitch:0,bearing:0,duration:reduceMotion()?0:1200,essential:false});},[]);
  useEffect(()=>{
   if(!mapNode.current||map.current)return;
   const params=new URLSearchParams(window.location.search);
@@ -96,6 +105,7 @@ export default function Explorer(){
   instance.addControl(new maplibregl.NavigationControl({showZoom:false,showCompass:true}),'bottom-right');
   const onError=(event:{error?:Error})=>{console.warn('Map resource error',event.error);setError('Some map tiles could not load. Check network access.');};
   instance.on('error',onError);
+  instance.on('load',()=>setMapReady(true));
   instance.on('moveend',()=>{const c=instance.getCenter();setMapPosition({lat:c.lat,lng:c.lng,zoom:instance.getZoom()});});
   instance.on('style.load',()=>{
    syncBoundary();syncPlaces();
@@ -128,7 +138,7 @@ export default function Explorer(){
   <div className="vignette" aria-hidden="true"/>
   {wireframe&&<div className="wireframe-glow" aria-hidden="true"/>}
   <div className="atlas-topline" aria-hidden="true"/>
-  <header className="topbar"><button className="brand" onClick={overview} aria-label="Return to province overview"><span className="brand-icon"><Mountain size={22}/></span><span><strong>BALOCHISTAN</strong><small>XPLORE / 3D ATLAS</small></span></button><div className="atlas-nav-actions"><a className="discover-link" href="/discover">Discover Balochistan ↗</a><span className="top-pill"><span className="pulse"/> INTERACTIVE EXPLORER</span></div></header>
+  <header className="topbar atlas-navbar"><button className="brand" onClick={overview} aria-label="Return to Balochistan overview"><span className="brand-icon"><Mountain size={22}/></span><span><strong>BALOCHISTAN</strong><small>XPLORE / DIGITAL ATLAS</small></span></button><nav className={'atlas-main-nav'+(menuOpen?' is-open':'')} aria-label="Main navigation"><a href="/" aria-current="page">Explore Map</a><a href="/discover">About Balochistan</a><a href="/updates">Stories & Photos</a><a href="/discover#travel">Tourism</a><a href="/discover#history">History & Culture</a><a href="/discover#nature">Nature</a></nav><div className="atlas-navbar-end"><button className="atlas-map-reset" onClick={overview}>View whole province</button><button className="atlas-menu-button" aria-label="Toggle navigation" aria-expanded={menuOpen} onClick={()=>setMenuOpen(v=>!v)}>{menuOpen?'Close':'Menu'} ☰</button></div></header>
   <div className="atlas-coordinate" aria-live="off"><Navigation size={13}/><span>{mapPosition.lat.toFixed(3)}° N &nbsp; {mapPosition.lng.toFixed(3)}° E</span><span className="coord-divider"/> ZOOM {mapPosition.zoom.toFixed(1)}</div>
   <aside className="sidebar" aria-label="Explore destinations"><div className="eyebrow"><Compass size={14}/> DISCOVER THE UNDISCOVERED</div><h1>Explore<br/><em>Balochistan.</em></h1><p className="lead">A new perspective on Pakistan’s largest province. Discover places, landscapes and stories.</p>
    <label className="search"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search cities and districts" placeholder="Search city or district…" />{query&&<button onClick={()=>setQuery('')} aria-label="Clear search"><X size={16}/></button>}</label>
