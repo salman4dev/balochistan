@@ -71,7 +71,7 @@ export default function Explorer(){
    else{window.prompt('Copy destination link',link);}
   }catch(error){if((error as Error)?.name!=='AbortError')setNotice('Could not share destination');}
  };
- const shareLocation=async()=>{const m=map.current;if(!m)return;const c=m.getCenter();const url=new URL(window.location.href);url.searchParams.set('lng',c.lng.toFixed(5));url.searchParams.set('lat',c.lat.toFixed(5));url.searchParams.set('z',m.getZoom().toFixed(1));url.searchParams.set('bearing',m.getBearing().toFixed(0));url.searchParams.set('pitch',m.getPitch().toFixed(0));try{await navigator.clipboard.writeText(url.toString());setNotice('Map view link copied');}catch{setNotice('Copy the URL from your address bar');}};
+ const shareLocation=async()=>{const m=map.current;if(!m)return;const c=m.getCenter();const url=new URL(window.location.href);url.searchParams.delete('place');url.searchParams.set('lng',c.lng.toFixed(5));url.searchParams.set('lat',c.lat.toFixed(5));url.searchParams.set('z',m.getZoom().toFixed(1));url.searchParams.set('bearing',m.getBearing().toFixed(0));url.searchParams.set('pitch',m.getPitch().toFixed(0));try{await navigator.clipboard.writeText(url.toString());setNotice('Map view link copied');}catch{setNotice('Copy the URL from your address bar');}};
 
  const [places,setPlaces]=useState<Place[]>([]);
  const [placesStatus,setPlacesStatus]=useState('Loading mapped settlements…');
@@ -127,7 +127,9 @@ export default function Explorer(){
  const [wireframe,setWireframe]=useState(false);
  const orbitRef=useRef(false);
  const terrainRef=useRef(true);
+ const reliefRef=useRef(true);
  useEffect(()=>{terrainRef.current=terrainOn;},[terrainOn]);
+ useEffect(()=>{reliefRef.current=showRelief;},[showRelief]);
  useEffect(()=>{if(!tour)return;const id=window.setInterval(()=>setTourIndex(i=>(i+1)%cities.length),6500);return()=>window.clearInterval(id);},[tour]);
  useEffect(()=>{if(tour)flyToCityForTour(cities[tourIndex]);},[tour,tourIndex]);
  const flyToCityForTour=(city:City)=>{setSelected(city);map.current?.flyTo({center:city.coordinates,zoom:8.6,pitch:65,bearing:25,duration:reduceMotion()?0:2400,essential:false});};
@@ -168,8 +170,8 @@ export default function Explorer(){
   instance.addControl(new maplibregl.NavigationControl({showZoom:false,showCompass:true}),'bottom-right');
   const onError=(event:{error?:Error})=>{console.warn('Map resource error',event.error);setError('Some map tiles could not load. Check network access.');};
   instance.on('error',onError);
-  instance.on('load',()=>{setMapReady(true);setMapSlow(false)});
-  const slowTimer=window.setTimeout(()=>setMapSlow(true),12000);
+  instance.on('load',()=>{window.clearTimeout(slowTimer);setMapReady(true);setMapSlow(false)});
+  const slowTimer=window.setTimeout(()=>{if(!instance.loaded())setMapSlow(true)},12000);
   instance.on('moveend',()=>{const c=instance.getCenter();setMapPosition({lat:c.lat,lng:c.lng,zoom:instance.getZoom()});});
   instance.on('style.load',()=>{
    syncBoundary();syncPlaces();
@@ -178,7 +180,7 @@ export default function Explorer(){
     instance.addSource('terrain',{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',tileSize:512});
     instance.setTerrain(terrainRef.current?{source:'terrain',exaggeration:1.45}:null);
     instance.addSource('relief-dem',{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',tileSize:512});
-    instance.addLayer({id:'terrain-relief',type:'hillshade',source:'relief-dem',layout:{visibility:'visible'},paint:{'hillshade-exaggeration':.55,'hillshade-shadow-color':'#1c2930','hillshade-highlight-color':'#d6c49d','hillshade-accent-color':'#aa7855'}});
+    instance.addLayer({id:'terrain-relief',type:'hillshade',source:'relief-dem',layout:{visibility:reliefRef.current?'visible':'none'},paint:{'hillshade-exaggeration':.55,'hillshade-shadow-color':'#1c2930','hillshade-highlight-color':'#d6c49d','hillshade-accent-color':'#aa7855'}});
     setTerrain('enabled');
    }catch(err){console.warn('Terrain initialization failed',err);setTerrain('unavailable');}
   });
@@ -218,7 +220,7 @@ export default function Explorer(){
  },[places,kindFilter,deferredQuery,favoritesOnly,favorites]);
  return <main className="shell">
   <div ref={mapNode} className="map" role="application" aria-label="Interactive map of Balochistan, Pakistan"/>
-  {!mapReady&&<div className="atlas-map-loading" role="status" aria-live="polite"><div className="atlas-map-loading-mark"><img src="/balochistan-xplore-logo.svg" alt="" width="56" height="56"/><span/></div><strong>Preparing the atlas</strong><p>{mapSlow?'Map tiles are taking longer than expected. Check your connection.':'Loading terrain, roads and provincial geography…'}</p></div>}
+  {!mapReady&&<div className="atlas-map-loading" role="status" aria-live="polite"><div className="atlas-map-loading-mark"><img src="/balochistan-xplore-logo.svg" alt="" width="56" height="56"/><span/></div><strong>Preparing the atlas</strong><p>{mapSlow?'Map tiles are taking longer than expected. Check your connection.':'Loading terrain, roads and provincial geography…'}</p>{mapSlow&&<button type="button" className="atlas-map-retry" onClick={()=>window.location.reload()}>Retry map loading</button>}</div>}
   <div className="vignette" aria-hidden="true"/>
   {wireframe&&<div className="wireframe-glow" aria-hidden="true"/>}
   <div className="atlas-topline" aria-hidden="true"/>
