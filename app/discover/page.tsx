@@ -19,7 +19,7 @@ const visuals:Record<string,{query:string;alt:string;caption:string}>={
 };
 export default function Discover(){
  return <main className="guide">
-  <nav className="guide-nav" aria-label="Guide navigation"><Link href="/">← Interactive map</Link><span>BALOCHISTAN <b>XPLORE</b></span><Link href="/knowledge">Facts & universities ↗</Link></nav>
+  <nav className="guide-nav" aria-label="Main navigation"><Link href="/" className="guide-nav-brand"><img src="/balochistan-xplore-logo.svg" alt="" width="35" height="35"/> BALOCHISTAN <b>XPLORE</b></Link><div><Link href="/">3D Atlas</Link><Link href="/discover" aria-current="page">Discover</Link><Link href="/knowledge">Facts & Universities</Link><Link href="/updates">Stories</Link></div></nav>
   <header className="guide-hero">
    <div className="guide-hero-copy"><div className="guide-kicker">A PHOTOGRAPHIC FIELD GUIDE / PAKISTAN</div><h1>Beyond the <em>map.</em></h1><p>Explore Balochistan through its people, dramatic landscapes, heritage and everyday life. Discover real places and follow their stories.</p><div className="guide-actions"><Link href="/">Open interactive atlas ↗</Link><a href="#topics">Explore eight themes ↓</a><Link href="/knowledge">Business, universities & facts ↗</Link></div><div className="guide-hero-note">REAL PLACES <span/> SOURCE-LINKED PHOTOGRAPHY <span/> EIGHT THEMES</div></div>
    <div className="guide-hero-visual"><Photo query="Gwadar Balochistan Pakistan Arabian Sea coastline" alt="Coastal landscape of Balochistan, Pakistan"/><div className="guide-hero-caption"><span>01 / EXPERIENCE THE LAND</span><strong>From the coast to the highlands</strong></div></div>
