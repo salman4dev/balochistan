@@ -28,8 +28,9 @@ export default function Explorer(){
  const [notice,setNotice]=useState('');
  const [menuOpen,setMenuOpen]=useState(false);
  const [controlsOpen,setControlsOpen]=useState(false);
- const [placesOpen,setPlacesOpen]=useState(true);
+ const [placesOpen,setPlacesOpen]=useState(false);
  const searchInput=useRef<HTMLInputElement|null>(null);
+ useEffect(()=>{setPlacesOpen(window.innerWidth>850)},[]);
  useEffect(()=>{const handler=(event:KeyboardEvent)=>{const target=event.target as HTMLElement|null;const typing=target?.matches('input,textarea,select,[contenteditable="true"]');if(event.key==='Escape'){setMenuOpen(false);setControlsOpen(false);setSelected(null);if(typing)target?.blur();}else if(event.key==='/'&&!typing&&!event.ctrlKey&&!event.metaKey){event.preventDefault();setPlacesOpen(true);searchInput.current?.focus();}};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[]);
 
  const [provinceOnly,setProvinceOnly]=useState(true);
