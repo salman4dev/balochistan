@@ -1,5 +1,5 @@
 'use client';
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {useCallback,useDeferredValue,useEffect,useMemo,useRef,useState} from 'react';
 import maplibregl,{type Map as MapType,type Marker} from 'maplibre-gl';
 import {ArrowLeft,Compass,MapPin,Mountain,Search,X,ZoomIn,ZoomOut,RotateCw,Layers,Pause,Play,Eye,Share2,Navigation,LocateFixed,SlidersHorizontal,Bookmark,BookmarkCheck,Keyboard} from 'lucide-react';
 import {cities,type City} from '@/lib/cities';
@@ -35,6 +35,7 @@ export default function Explorer(){
  const markers=useRef<Marker[]>([]);
  const [selected,setSelected]=useState<City|null>(null);
  const [query,setQuery]=useState('');
+ const deferredQuery=useDeferredValue(query);
  const [favorites,setFavorites]=useState<string[]>([]);
  const [favoritesOnly,setFavoritesOnly]=useState(false);
  useEffect(()=>{try{const stored=JSON.parse(localStorage.getItem('balochistan-xplore-favorites')||'[]');if(Array.isArray(stored))setFavorites(stored.filter((v):v is string=>typeof v==='string'));}catch{}},[]);
@@ -177,7 +178,26 @@ export default function Explorer(){
   }
   return()=>{markers.current.forEach(marker=>marker.remove());markers.current=[];instance.remove();map.current=null;};
  },[flyToCity]);
- const filtered=[...cities.filter(c=>kindFilter==='all'||kindFilter==='city'),...places.filter(p=>(kindFilter==='all'||p.kind===kindFilter)&&!cities.some(c=>c.name.toLowerCase()===p.name.toLowerCase())).map(asCity)].filter(city=>(!favoritesOnly||favorites.includes(city.id))&&(city.name+' '+city.district).toLowerCase().includes(query.trim().toLowerCase())).slice(0,70);
+ const filtered=useMemo(()=>{
+  const term=deferredQuery.trim().toLocaleLowerCase();
+  const curatedNames=new Set(cities.map(c=>c.name.toLocaleLowerCase()));
+  const favoriteIds=favoritesOnly?new Set(favorites):null;
+  const result:City[]=[];
+  const matches=(city:City)=>!favoriteIds||favoriteIds.has(city.id);
+  for(const city of cities){
+   if(kindFilter!=='all'&&kindFilter!=='city')continue;
+   if(matches(city)&&(!term||(city.name+' '+city.district).toLocaleLowerCase().includes(term)))result.push(city);
+  }
+  for(const place of places){
+   if(result.length>=70)break;
+   if(kindFilter!=='all'&&place.kind!==kindFilter)continue;
+   if(curatedNames.has(place.name.toLocaleLowerCase()))continue;
+   if(favoriteIds&&!favoriteIds.has(place.id))continue;
+   if(term&&!(place.name+' '+place.district).toLocaleLowerCase().includes(term))continue;
+   result.push(asCity(place));
+  }
+  return result.slice(0,70);
+ },[places,kindFilter,deferredQuery,favoritesOnly,favorites]);
  return <main className="shell">
   <div ref={mapNode} className="map" role="application" aria-label="Interactive map of Balochistan, Pakistan"/>
   <div className="vignette" aria-hidden="true"/>
