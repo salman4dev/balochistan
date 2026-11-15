@@ -18,7 +18,7 @@ export default function Explorer(){
  const overview=useCallback(()=>{setSelected(null);map.current?.flyTo({center:CENTER,zoom:6.0,pitch:48,bearing:0,duration:reduceMotion()?0:1400,essential:false});},[]);
  useEffect(()=>{
   if(!mapNode.current||map.current)return;
-  const instance=new maplibregl.Map({container:mapNode.current,style:'https://tiles.openfreemap.org/styles/dark',center:CENTER,zoom:6,pitch:48,bearing:0,maxPitch:80,attributionControl:true});
+  const instance=new maplibregl.Map({container:mapNode.current,style:'https://tiles.openfreemap.org/styles/dark',center:CENTER,zoom:6,pitch:48,bearing:0,maxPitch:80,attributionControl:{}});
   map.current=instance;
   instance.addControl(new maplibregl.NavigationControl({showZoom:false,showCompass:true}),'bottom-right');
   const onError=(event:{error?:Error})=>{console.warn('Map resource error',event.error);setError('Some map tiles could not load. Check network access.');};
