@@ -23,3 +23,53 @@
 
 /* Destination discovery enhancements */
 .favorite-filter{width:100%;margin:12px 0 2px;border:1px solid #3b5b62;border-radius:9px;background:#142c34;color:#d4e7e5;padding:10px 13px;display:flex;align-items:center;gap:9px;text-align:left;font-size:12px}.favorite-filter span{margin-left:auto;color:#e9ad6b}.favorite-filter.active{background:#483522;border-color:#e9ad6b;color:#ffe4be}.detail .story-photo{height:175px;margin:12px 0;border-radius:11px;overflow:hidden}.detail .story-photo img{width:100%;height:100%;object-fit:cover}.detail .story-photo>a{position:absolute;bottom:6px;right:6px;background:#071e29df;color:#d5f2ef;font-size:9px;padding:5px 7px;border-radius:5px;text-decoration:none}.detail .story-photo .photo-fallback{display:flex;height:100%;flex-direction:column;justify-content:center;gap:7px;padding:20px;background:linear-gradient(130deg,#21424a,#3d3d32)}.detail .photo-fallback span{font-size:9px;letter-spacing:1.5px;color:#e9ad6b}.detail .photo-fallback strong{font-size:16px}.detail .photo-fallback small{font-size:10px}.detail-toolbar{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}.detail-toolbar button{display:flex;align-items:center;gap:6px;border:1px solid #52716c;border-radius:8px;background:#183b3e;color:#d6eee7;font-size:10px;padding:9px}.detail-toolbar button[aria-pressed=true]{border-color:#e5ac67;color:#ffdb9d;background:#493823}
+
+/* Xplore visual system — restrained editorial glass and warm cartographic accents */
+:root{--x-bg:#071821;--x-panel:#0a202beF;--x-line:#34535a;--x-gold:#e9b878;--x-mint:#a1e4d7;--x-text:#f5f3ed}
+.shell{background:var(--x-bg)}
+.vignette{background:linear-gradient(90deg,rgba(5,18,26,.9) 0%,rgba(5,18,26,.68) 24%,rgba(5,18,26,.09) 56%,rgba(5,18,26,.25) 100%);pointer-events:none}
+.atlas-navbar{border-bottom:1px solid #739e9a22;background:linear-gradient(180deg,#061721f5,#061721dd);backdrop-filter:blur(22px);box-shadow:0 15px 42px #020d1540}
+.brand-icon{border-radius:14px;overflow:hidden;border:1px solid #6e969055;box-shadow:0 0 0 4px #75a6a20d,0 7px 24px #0005}
+.brand-icon img{width:100%;height:100%;object-fit:cover}
+.brand strong{font-weight:800;letter-spacing:1.5px}
+.brand small{color:#a9c6c4;letter-spacing:2.1px}
+.atlas-main-nav{background:#102e37bb;border-color:#638e8944;box-shadow:inset 0 1px #ffffff0a}
+.atlas-main-nav a{transition:background .18s ease,color .18s ease,transform .18s ease}
+.atlas-main-nav a:hover{transform:translateY(-1px)}
+.atlas-main-nav a[aria-current]{background:var(--x-gold);color:#14262c;box-shadow:0 3px 14px #dba46b36}
+.sidebar{padding:20px 17px 20px 18px;left:22px;top:116px;width:370px;max-height:calc(100svh - 142px);background:linear-gradient(145deg,#081c29ed,#0a2430e0);border:1px solid #5a7b784f;border-radius:22px;backdrop-filter:blur(24px);box-shadow:0 18px 60px #010a1380;scrollbar-width:thin;scrollbar-color:#537b77 transparent}
+.sidebar .eyebrow{color:var(--x-gold);font-size:10px}
+.sidebar h1{font-weight:800;font-size:clamp(43px,4.3vw,61px);letter-spacing:-3.6px;margin:18px 0 13px}
+.sidebar h1 em{color:var(--x-gold)}
+.sidebar .lead{color:#c3d0d0;font-size:13px;line-height:1.7;margin-bottom:19px}
+.search{background:#061a26;border-color:#54757177;box-shadow:inset 0 1px #ffffff0b}
+.search:focus-within{border-color:#e9b878;box-shadow:0 0 0 3px #e9b87820}
+.place-filters button{border-color:#54757177;background:#122d37}
+.place-filters button.active{background:var(--x-gold);border-color:var(--x-gold)}
+.city-list{gap:7px}
+.city-item{background:#102b34c9;border-color:#4a68674a;border-radius:11px;padding:12px 13px;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.city-item:hover,.city-item.active{background:#1b3b40;border-color:#e9b878aa;transform:translateX(2px)}
+.city-index{color:var(--x-gold);font-variant-numeric:tabular-nums}
+.city-meta strong{font-size:13px;letter-spacing:.1px}
+.city-meta small{font-size:10px}
+.sidebar-bottom{border-top:1px solid #65827b3b;padding-top:13px;font-size:10px;line-height:1.6}
+.explore-controls{right:22px;top:116px;width:274px;background:linear-gradient(150deg,#081c29f2,#102c36ee);border:1px solid #5a7b784f;border-radius:21px;backdrop-filter:blur(24px);box-shadow:0 18px 60px #010a1380;padding:20px}
+.control-title{color:var(--x-gold)}
+.orbit-button{background:var(--x-gold);color:#11252b;box-shadow:0 6px 20px #dfae6840;transition:filter .18s ease,transform .18s ease}
+.orbit-button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.tour-button,.share-map,.control-actions button{transition:border-color .18s ease,background .18s ease}
+.tour-button:hover,.share-map:hover,.control-actions button:hover{border-color:var(--x-gold)}
+.detail{background:linear-gradient(145deg,#0a202cf5,#0d2a34f3);border:1px solid #75918b70;border-radius:22px;box-shadow:0 24px 70px #0009}
+.detail h2{font-size:33px;letter-spacing:-1.5px}
+.detail .story-photo{height:190px}
+.marker-dot{background:var(--x-gold);box-shadow:0 0 0 6px #e9b8782c,0 0 22px #e9b87875}
+.marker-label{background:#061c27e8;border-color:#9baea655;border-radius:7px;backdrop-filter:blur(8px)}
+.city-marker:hover .marker-label{border-color:var(--x-gold);color:#ffe2b5}
+.zoom-tools button,.atlas-coordinate,.map-hint{background:#09232edb;border-color:#62827b66;backdrop-filter:blur(16px)}
+.zoom-tools button:hover{background:#28535a;border-color:var(--x-gold)}
+.atlas-coordinate{color:#d1e1df}
+.favorite-filter{transition:border-color .18s ease,background .18s ease}
+.favorite-filter:hover{border-color:var(--x-gold)}
+@media(max-width:1020px){.atlas-navbar{padding:14px 18px}.atlas-main-nav.is-open{z-index:10;border:1px solid #678b8466;background:#09212bf9;box-shadow:0 20px 60px #000a}.sidebar{top:101px}.explore-controls{top:101px}}
+@media(max-width:850px){.sidebar{left:12px;top:84px;width:min(350px,calc(100vw - 24px));max-height:44svh;padding:16px;background:#091e29ef}.sidebar h1{font-size:36px;letter-spacing:-2px}.sidebar .lead{font-size:12px}.explore-controls{top:auto;right:12px;bottom:55px;width:min(215px,calc(100vw - 24px));padding:13px}.detail{bottom:10px;left:10px;right:10px;max-height:55svh}.zoom-tools{bottom:340px}.atlas-coordinate{display:none}.brand-icon{width:40px;height:40px}.atlas-navbar{padding:10px 12px}}
+@media(max-width:420px){.sidebar{max-height:42svh}.sidebar .lead{display:none}.sidebar h1{margin:10px 0}.city-list{gap:5px}.city-item{padding:9px}.explore-controls{width:195px}.control-row{font-size:11px}.atlas-main-nav{top:66px}}
