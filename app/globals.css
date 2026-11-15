@@ -89,3 +89,21 @@
  .detail{z-index:6}
 }
 @media(min-width:851px){.sidebar.sidebar-hidden{display:none}}
+
+/* Curated atlas trail cards and honest map-symbol legend */
+.atlas-quick-trips{margin:0 0 19px}
+.atlas-quick-heading{display:flex;justify-content:space-between;gap:10px;color:#e8bd86;font-size:9px;font-weight:800;letter-spacing:1.6px;margin-bottom:9px}
+.atlas-quick-heading span:last-child{color:#7eaba5;font-weight:600;letter-spacing:1px}
+.atlas-quick-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.atlas-quick-card{min-width:0;text-align:left;display:flex;align-items:center;gap:8px;background:linear-gradient(150deg,#18343c,#10252f);border:1px solid #6c8b8155;border-radius:12px;padding:10px 8px;color:#f3f4ec;transition:background .2s,border-color .2s,transform .2s}
+.atlas-quick-card:hover,.atlas-quick-card:focus-visible,.atlas-quick-card.selected{border-color:#dfab6e;background:#284245;transform:translateY(-1px)}
+.atlas-quick-emoji{font-size:20px;line-height:1;flex-shrink:0}
+.atlas-quick-card strong,.atlas-quick-card small{display:block;min-width:0;overflow-wrap:anywhere}
+.atlas-quick-card strong{font-size:10px;font-weight:750;line-height:1.25}
+.atlas-quick-card small{font-size:9px;color:#9bbab7;margin-top:3px;line-height:1.3}
+.atlas-map-legend{display:flex;align-items:center;flex-wrap:wrap;gap:9px 13px;margin-top:18px;padding:11px 0;border-top:1px solid #54777165;color:#bfd4d1;font-size:10px}
+.atlas-map-legend .atlas-legend-title{display:block;width:100%;color:#e8bd86;font-size:9px;font-weight:800;letter-spacing:1.5px}
+.atlas-map-legend>span:not(.atlas-legend-title){display:flex;align-items:center;gap:6px}
+.atlas-map-legend i{display:inline-block;width:9px;height:9px;border-radius:50%;border:1px solid #e8eeee90}
+.legend-city{background:#ffb24c}.legend-town{background:#f1c475}.legend-village{background:#68d7d0}
+@media(max-width:850px){.atlas-quick-card{padding:8px}.atlas-quick-emoji{font-size:17px}.atlas-quick-trips{margin-bottom:12px}}
