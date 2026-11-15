@@ -32,6 +32,7 @@ export default function Explorer(){
  const mapNode=useRef<HTMLDivElement|null>(null);
  const map=useRef<MapType|null>(null);
  const incomingDeepLink=useRef(false);
+ const initialBoundaryFit=useRef(false);
  const markers=useRef<Marker[]>([]);
  const [selected,setSelected]=useState<City|null>(null);
  const [query,setQuery]=useState('');
@@ -113,7 +114,7 @@ export default function Explorer(){
   if(!m.getLayer('province-outline'))m.addLayer({id:'province-outline',type:'line',source:'province',paint:{'line-color':'#64e3dd','line-width':2.2,'line-opacity':.9}});
   if(provinceOnly){
    const bounds=getProvinceBounds(boundaryRef.current);
-   if(bounds){const [[west,south],[east,north]]=bounds;if(west>59&&east<72&&south>23&&north<34){m.setMaxBounds([[west-.8,south-.8],[east+.8,north+.8]]);if(!incomingDeepLink.current)m.fitBounds(bounds,{padding:{top:110,bottom:90,left:typeof window!=='undefined'&&window.innerWidth>850?390:30,right:typeof window!=='undefined'&&window.innerWidth>850?300:30},duration:reduceMotion()?0:1500,pitch:0,bearing:0});}}
+   if(bounds){const [[west,south],[east,north]]=bounds;if(west>59&&east<72&&south>23&&north<34){m.setMaxBounds([[west-.8,south-.8],[east+.8,north+.8]]);if(!incomingDeepLink.current&&!initialBoundaryFit.current){initialBoundaryFit.current=true;m.fitBounds(bounds,{padding:{top:110,bottom:90,left:typeof window!=='undefined'&&window.innerWidth>850?390:30,right:typeof window!=='undefined'&&window.innerWidth>850?300:30},duration:reduceMotion()?0:1500,pitch:0,bearing:0});}}}
   }
  };
 
@@ -160,7 +161,7 @@ export default function Explorer(){
   if(!mapNode.current||map.current)return;
   const params=new URLSearchParams(window.location.search);
   const requestedPlace=params.get('place');
-  incomingDeepLink.current=Boolean(requestedPlace)||(['lng','lat','z'].some(key=>params.has(key)));
+  incomingDeepLink.current=Boolean(requestedPlace&&cities.some(city=>city.id===requestedPlace))||(['lng','lat','z'].some(key=>params.has(key)));
   if(requestedPlace){const city=cities.find(item=>item.id===requestedPlace);if(city){setSelected(city);setPlacesOpen(false);}}
 
   const num=(key:string,fallback:number,min:number,max:number)=>{const n=Number(params.get(key));return params.has(key)&&Number.isFinite(n)?Math.min(max,Math.max(min,n)):fallback};
