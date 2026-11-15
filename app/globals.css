@@ -125,3 +125,13 @@
 @media(prefers-reduced-motion:reduce){.atlas-loading-ring,.atlas-loading-track>span{animation:none!important}.atlas-loading-track>span{width:100%;transform:none!important}}
 /* Compact navigation when knowledge pages add new routes */
 @media(min-width:1021px) and (max-width:1450px){.atlas-main-nav a{font-size:10px;padding:9px 7px}.atlas-navbar{gap:8px;padding-left:18px;padding-right:18px}.atlas-map-reset{display:none}}
+
+/* Atlas-only map readiness overlay: map remains noninteractive until ready */
+.atlas-map-loading{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:30px;pointer-events:none;background:radial-gradient(circle at center,#183b43ef 0%,#09232eea 50%,#061820f5 100%);color:#f1ede2}
+.atlas-map-loading-mark{width:108px;height:108px;border-radius:50%;border:1px solid #70938983;display:grid;place-items:center;position:relative;background:#15343c}
+.atlas-map-loading-mark>img{width:56px;height:56px;border-radius:14px}
+.atlas-map-loading-mark>span{position:absolute;inset:0;border:2px solid transparent;border-top-color:#eabc84;border-radius:50%;animation:atlas-map-spin 2.5s linear infinite}
+.atlas-map-loading>strong{font-size:20px;letter-spacing:-.4px;margin-top:5px}
+.atlas-map-loading>p{color:#b4ceca;font-size:13px;max-width:280px;line-height:1.65;margin:0}
+@keyframes atlas-map-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.atlas-map-loading-mark>span{animation:none}}
