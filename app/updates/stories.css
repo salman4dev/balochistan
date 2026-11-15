@@ -28,3 +28,7 @@
 @media(max-width:800px){.story-nav{padding:13px 19px}.story-hero{padding:71px 20px 57px}.story-grid{padding:0 20px 74px;gap:13px}.story-grid .story-feature .story-photo{height:290px}}
 @media(max-width:560px){.story-nav{gap:15px;flex-direction:column;align-items:flex-start}.story-nav div{width:100%;gap:3px}.story-nav div a{font-size:11px;padding:9px 10px}.story-hero{padding-top:55px}.story-hero h1{font-size:clamp(51px,12vw,72px);letter-spacing:-2.5px}.story-hero p{font-size:15px}.story-grid{padding:0 16px 65px}.story-grid article{border-radius:17px}.story-grid .story-photo,.story-grid .story-feature .story-photo{height:235px}.story-body{padding:21px}.story-body p{min-height:0}.story-footer{padding-left:17px;padding-right:17px}}
 @media(prefers-reduced-motion:reduce){.story-grid article,.story-photo img,.story-nav div a{transition:none!important}}
+
+.story-nav>a.story-nav-brand{display:inline-flex;align-items:center;gap:9px;font-size:13px;letter-spacing:1.35px;font-weight:850;white-space:nowrap}
+.story-nav-brand img{width:35px;height:35px;border-radius:9px}
+@media(max-width:420px){.story-nav>a.story-nav-brand{font-size:11px}.story-nav div{justify-content:space-between;gap:0}.story-nav div a{font-size:10px;padding:8px 7px}}
