@@ -5,6 +5,9 @@ import {ArrowLeft,Compass,MapPin,Mountain,Search,X,ZoomIn,ZoomOut,RotateCw,Layer
 import {cities,type City} from '@/lib/cities';
 
 const CENTER:[number,number]=[65.4,28.2];
+type Place={id:string;name:string;kind:string;coordinates:[number,number];district:string;description:string};
+const asCity=(p:Place):City=>({id:p.id,name:p.name,district:p.district||'Balochistan',coordinates:p.coordinates,description:p.description||'Explore this settlement on the map. More verified local history, culture and landmarks will be added as sources become available.',highlights:[p.kind.charAt(0).toUpperCase()+p.kind.slice(1),'OpenStreetMap location']});
+
 const reduceMotion=()=>typeof window!=='undefined'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 export default function Explorer(){
  const mapNode=useRef<HTMLDivElement|null>(null);
@@ -12,6 +15,33 @@ export default function Explorer(){
  const markers=useRef<Marker[]>([]);
  const [selected,setSelected]=useState<City|null>(null);
  const [query,setQuery]=useState('');
+ const [places,setPlaces]=useState<Place[]>([]);
+ const [placesStatus,setPlacesStatus]=useState('Loading mapped settlements…');
+ const [boundaryStatus,setBoundaryStatus]=useState('Loading provincial boundary…');
+ const placesRef=useRef<Place[]>([]);
+ const boundaryRef=useRef<GeoJSON.FeatureCollection|null>(null);
+ useEffect(()=>{
+  let active=true;
+  fetch('/api/places').then(r=>r.json()).then(data=>{if(!active)return;const result=Array.isArray(data.places)?data.places:[];placesRef.current=result;setPlaces(result);setPlacesStatus(result.length?result.length.toLocaleString()+' mapped settlements':'Live settlements unavailable');syncPlaces();}).catch(()=>{if(active)setPlacesStatus('Live settlements unavailable');});
+  fetch('/api/boundary').then(r=>r.json()).then(data=>{if(!active)return;if(data.type==='FeatureCollection'){boundaryRef.current=data;setBoundaryStatus('Boundary loaded');syncBoundary();}else setBoundaryStatus('Boundary unavailable');}).catch(()=>{if(active)setBoundaryStatus('Boundary unavailable');});
+  return()=>{active=false};
+ },[]);
+ const syncPlaces=()=>{
+  const m=map.current;if(!m||!m.isStyleLoaded())return;
+  const geojson:GeoJSON.FeatureCollection={type:'FeatureCollection',features:placesRef.current.map(p=>({type:'Feature',geometry:{type:'Point',coordinates:p.coordinates},properties:{id:p.id,name:p.name,kind:p.kind}}))};
+  const source=m.getSource('settlements') as maplibregl.GeoJSONSource|undefined;
+  if(source)source.setData(geojson);else m.addSource('settlements',{type:'geojson',data:geojson});
+  if(!m.getLayer('settlement-dots'))m.addLayer({id:'settlement-dots',type:'circle',source:'settlements',paint:{'circle-radius':['interpolate',['linear'],['zoom'],5,1.6,8,3.5,11,5],'circle-color':['match',['get','kind'],'city','#ffb24c','town','#f1c475','village','#68d7d0','#66b6b3'],'circle-stroke-color':'#081925','circle-stroke-width':1,'circle-opacity':.85}});
+  if(!m.getLayer('settlement-labels'))m.addLayer({id:'settlement-labels',type:'symbol',source:'settlements',minzoom:7,layout:{'text-field':['get','name'],'text-size':11,'text-offset':[0,1.2],'text-optional':true},paint:{'text-color':'#e6f8f5','text-halo-color':'#071a23','text-halo-width':1.5}});
+ };
+ const syncBoundary=()=>{
+  const m=map.current;if(!m||!m.isStyleLoaded()||!boundaryRef.current)return;
+  const source=m.getSource('province') as maplibregl.GeoJSONSource|undefined;
+  if(source)source.setData(boundaryRef.current);else m.addSource('province',{type:'geojson',data:boundaryRef.current});
+  if(!m.getLayer('province-glow'))m.addLayer({id:'province-glow',type:'line',source:'province',paint:{'line-color':'#26d8e2','line-width':8,'line-opacity':.14,'line-blur':5}});
+  if(!m.getLayer('province-outline'))m.addLayer({id:'province-outline',type:'line',source:'province',paint:{'line-color':'#64e3dd','line-width':2.2,'line-opacity':.9}});
+ };
+
  const [terrain,setTerrain]=useState<'loading'|'enabled'|'unavailable'>('loading');
  const [error,setError]=useState('');
  const [orbit,setOrbit]=useState(false);
@@ -56,6 +86,7 @@ export default function Explorer(){
   const onError=(event:{error?:Error})=>{console.warn('Map resource error',event.error);setError('Some map tiles could not load. Check network access.');};
   instance.on('error',onError);
   instance.on('style.load',()=>{
+   syncBoundary();syncPlaces();
    try{
     if(instance.getSource('terrain'))return;
     instance.addSource('terrain',{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',tileSize:512});
@@ -63,6 +94,9 @@ export default function Explorer(){
     setTerrain('enabled');
    }catch(err){console.warn('Terrain initialization failed',err);setTerrain('unavailable');}
   });
+  instance.on('click','settlement-dots',event=>{const id=event.features?.[0]?.properties?.id;const p=placesRef.current.find(place=>place.id===id);if(p)flyToCity(asCity(p));});
+  instance.on('mouseenter','settlement-dots',()=>{instance.getCanvas().style.cursor='pointer'});
+  instance.on('mouseleave','settlement-dots',()=>{instance.getCanvas().style.cursor=''});
   for(const city of cities){
    const button=document.createElement('button');button.type='button';button.className='city-marker';
    button.setAttribute('aria-label','Explore '+city.name);
@@ -74,7 +108,7 @@ export default function Explorer(){
   }
   return()=>{markers.current.forEach(marker=>marker.remove());markers.current=[];instance.remove();map.current=null;};
  },[flyToCity]);
- const filtered=cities.filter(city=>(city.name+' '+city.district).toLowerCase().includes(query.trim().toLowerCase()));
+ const filtered=[...cities,...places.filter(p=>!cities.some(c=>c.name.toLowerCase()===p.name.toLowerCase())).map(asCity)].filter(city=>(city.name+' '+city.district).toLowerCase().includes(query.trim().toLowerCase())).slice(0,70);
  return <main className="shell">
   <div ref={mapNode} className="map" role="application" aria-label="Interactive map of Balochistan, Pakistan"/>
   <div className="vignette" aria-hidden="true"/>
@@ -82,15 +116,15 @@ export default function Explorer(){
   <header className="topbar"><button className="brand" onClick={overview} aria-label="Return to province overview"><span className="brand-icon"><Mountain size={22}/></span><span><strong>BALOCHISTAN</strong><small>XPLORE / 3D ATLAS</small></span></button><span className="top-pill"><span className="pulse"/> INTERACTIVE EXPLORER</span></header>
   <aside className="sidebar" aria-label="Explore destinations"><div className="eyebrow"><Compass size={14}/> DISCOVER THE UNDISCOVERED</div><h1>Explore<br/><em>Balochistan.</em></h1><p className="lead">A new perspective on Pakistan’s largest province. Discover places, landscapes and stories.</p>
    <label className="search"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search cities and districts" placeholder="Search city or district…" />{query&&<button onClick={()=>setQuery('')} aria-label="Clear search"><X size={16}/></button>}</label>
-   <div className="section-heading"><span>FEATURED DESTINATIONS</span><span>{String(filtered.length).padStart(2,'0')}</span></div>
-   <div className="city-list">{filtered.map((city,i)=><button key={city.id} className={'city-item'+(selected?.id===city.id?' active':'')} onClick={()=>flyToCity(city)} aria-pressed={selected?.id===city.id}><span className="city-index">{String(i+1).padStart(2,'0')}</span><span className="city-meta"><strong>{city.name}</strong><small>{city.district} District</small></span><MapPin size={18}/></button>)}{filtered.length===0&&<p className="empty">No matching city in the current preview.</p>}</div>
-   <div className="sidebar-bottom"><span className="status-dot"/> {terrain==='enabled'?'3D terrain configured':terrain==='loading'?'Loading terrain…':'Terrain unavailable — map active'} · Free-first map</div>
+   <div className="section-heading"><span>CITIES, TOWNS & VILLAGES</span><span>{String(filtered.length).padStart(2,'0')}</span></div>
+   <div className="city-list">{filtered.map((city,i)=><button key={city.id} className={'city-item'+(selected?.id===city.id?' active':'')} onClick={()=>flyToCity(city)} aria-pressed={selected?.id===city.id}><span className="city-index">{String(i+1).padStart(2,'0')}</span><span className="city-meta"><strong>{city.name}</strong><small>{city.district} District</small></span><MapPin size={18}/></button>)}{filtered.length===0&&<p className="empty">No matching settlement in the available dataset.</p>}</div>
+   <div className="sidebar-bottom"><span className="status-dot"/> {placesStatus} · {boundaryStatus} · {terrain==='enabled'?'3D terrain on':terrain==='loading'?'Loading terrain':'Terrain unavailable'}</div>
   </aside>
   {selected&&<section className="detail" aria-label={selected.name+' information'}><div className="detail-head"><span className="eyebrow">CITY SPOTLIGHT / {selected.district.toUpperCase()}</span><button className="close" onClick={()=>setSelected(null)} aria-label="Close city details"><X size={18}/></button></div><div className="detail-art"><Mountain size={60} strokeWidth={1}/><span>DISCOVER / {selected.name.toUpperCase()}</span></div><h2>{selected.name}</h2><p className="district"><MapPin size={15}/> {selected.district} District · Balochistan, Pakistan</p><p className="description">{selected.description}</p><h3>Highlights</h3><div className="highlights">{selected.highlights.map(item=><span key={item}>{item}</span>)}</div><button className="back" onClick={overview}><ArrowLeft size={16}/> Back to province</button></section>}
   <section className="explore-controls" aria-label="3D exploration controls">
    <div className="control-title"><Layers size={15}/> EXPLORE IN 3D <span className="control-live">360°</span></div>
    <div className="control-row"><span>Map style</span><div className="control-segment"><button aria-pressed={styleMode==='dark'} className={styleMode==='dark'?'chosen':''} onClick={()=>changeStyle('dark')}>Night</button><button aria-pressed={styleMode==='light'} className={styleMode==='light'?'chosen':''} onClick={()=>changeStyle('light')}>Day</button></div></div>
-   <div className="control-row"><span>3D mountains</span><button className={'control-switch'+(terrainOn?' on':'')} role="switch" aria-checked={terrainOn} aria-label="Toggle 3D terrain" onClick={toggleTerrain}><span/></button></div>
+   <div className="control-row"><span>Real 3D terrain</span><button className={'control-switch'+(terrainOn?' on':'')} role="switch" aria-checked={terrainOn} aria-label="Toggle 3D terrain" onClick={toggleTerrain}><span/></button></div>
    <div className="control-row"><span>Neon atmosphere</span><button className={'control-switch'+(wireframe?' on':'')} role="switch" aria-checked={wireframe} aria-label="Toggle neon overlay" onClick={()=>setWireframe(v=>!v)}><span/></button></div>
    <button className="orbit-button" aria-pressed={orbit} onClick={()=>{setTour(false);setOrbit(v=>!v);}}>{orbit?<Pause size={16}/>:<RotateCw size={16}/>} {orbit?'Pause 360° orbit':'Start 360° orbit'}</button>
    <button className="tour-button" aria-pressed={tour} onClick={()=>{setOrbit(false);setTour(v=>{if(!v)setTourIndex(0);return !v;});}}>{tour?<Pause size={16}/>:<Play size={16}/>} {tour?'Stop guided city tour':'Tour Turbat · Gwadar · Quetta'}</button>
